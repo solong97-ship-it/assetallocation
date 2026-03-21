@@ -1,5 +1,21 @@
 import type { Portfolio } from "../types/portfolio";
 
+export type PortfolioMode = "안정형" | "중립형" | "성장형";
+
+// A형, B형에만 적용. 배열 순서는 items 배열 인덱스와 일치
+export const portfolioModePresets: Record<string, Record<PortfolioMode, number[]>> = {
+  A형_K_연금저축: {
+    안정형: [15, 5, 5, 5, 12, 4.5, 4.5, 9, 40],
+    중립형: [20, 6, 7, 7, 16, 6, 6, 12, 20],
+    성장형: [24, 8, 8, 8, 19, 7, 7, 14, 5],
+  },
+  B형_K_IRP: {
+    안정형: [15, 2, 5, 5, 12, 7.5, 4.5, 9, 40],
+    중립형: [20, 2, 7, 7, 16, 10, 6, 12, 20],
+    성장형: [24, 3.5, 8, 8, 19, 11.5, 7, 14, 5],
+  },
+};
+
 export const initialPortfolios: Portfolio[] = [
   {
     id: "A형_K_연금저축",

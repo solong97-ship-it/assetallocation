@@ -10,7 +10,7 @@ import PortfolioSummary from "./components/PortfolioSummary";
 import PortfolioTable from "./components/PortfolioTable";
 import AllocationDonut from "./components/AllocationDonut";
 import CustomPortfolioForm from "./components/CustomPortfolioForm";
-import { initialPortfolios } from "./data/portfolios";
+import { initialPortfolios, portfolioModePresets, type PortfolioMode } from "./data/portfolios";
 import type { Portfolio } from "./types/portfolio";
 import {
   calcCheckAmount,
@@ -60,6 +60,7 @@ function App() {
   const [historyByCode, setHistoryByCode] = useState<Record<string, PricePoint[]>>({});
   const [kpiMode, setKpiMode] = useState<"target" | "history">("history");
   const [priceDate, setPriceDate] = useState<string | null>(null);
+  const [portfolioModeMap, setPortfolioModeMap] = useState<Record<string, PortfolioMode>>({});
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showCustomForm, setShowCustomForm] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -202,6 +203,13 @@ function App() {
     field: "price" | "weight" | "dividendYield",
     value: number
   ) => {
+    if (field === "weight") {
+      setPortfolioModeMap((prev) => {
+        const next = { ...prev };
+        delete next[activeId];
+        return next;
+      });
+    }
     const sanitizedValue = sanitizeNonNegativeNumber(value, 0);
     updatePortfolio(activeId, (portfolio) => ({
       ...portfolio,
@@ -256,6 +264,20 @@ function App() {
     } finally {
       e.target.value = "";
     }
+  };
+
+  const handlePortfolioModeChange = (portfolioId: string, mode: PortfolioMode) => {
+    const presets = portfolioModePresets[portfolioId];
+    if (!presets) return;
+    const weights = presets[mode];
+    setPortfolioModeMap((prev) => ({ ...prev, [portfolioId]: mode }));
+    updatePortfolio(portfolioId, (portfolio) => ({
+      ...portfolio,
+      items: portfolio.items.map((item, index) => ({
+        ...item,
+        weight: weights[index] ?? item.weight,
+      })),
+    }));
   };
 
   const handleNormalize = () => {
@@ -380,6 +402,36 @@ function App() {
           <div className="mt-3">
             <PortfolioTabs portfolios={portfolios} activeId={activeId} onChange={setActiveId} />
           </div>
+
+          {/* 투자성향 모드 선택 (A형·B형 전용) */}
+          {portfolioModePresets[activeId] && (
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <span className="text-xs font-semibold text-slate-500">투자성향:</span>
+              {(["안정형", "중립형", "성장형"] as PortfolioMode[]).map((mode) => {
+                const active = portfolioModeMap[activeId] === mode;
+                const colorMap: Record<PortfolioMode, string> = {
+                  안정형: active ? "bg-sky-500 text-white border-sky-500" : "border-sky-200 text-sky-600 hover:bg-sky-50",
+                  중립형: active ? "bg-amber-500 text-white border-amber-500" : "border-amber-200 text-amber-600 hover:bg-amber-50",
+                  성장형: active ? "bg-rose-500 text-white border-rose-500" : "border-rose-200 text-rose-600 hover:bg-rose-50",
+                };
+                return (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() => handlePortfolioModeChange(activeId, mode)}
+                    className={`rounded-lg border px-4 py-1.5 text-sm font-bold transition ${colorMap[mode]}`}
+                  >
+                    {mode}
+                  </button>
+                );
+              })}
+              {portfolioModeMap[activeId] && (
+                <span className="text-xs text-slate-400">
+                  ※ 비중 직접 수정 시 성향 해제
+                </span>
+              )}
+            </div>
+          )}
 
           {/* 자주 쓰는 기능 + 더보기 토글 */}
           <div className="mt-3 flex flex-wrap items-center gap-2">
