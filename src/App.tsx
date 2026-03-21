@@ -19,8 +19,7 @@ import {
   calcShareCount,
   calcWeightSum,
 } from "./utils/calculations";
-import { fetchPricesByCodes } from "./utils/priceFetcher";
-import { fetchOneYearHistoriesByCodes, type PricePoint } from "./utils/priceFetcher";
+import { fetchPricesByCodes, fetchOneYearHistoriesByCodes, type PricePoint } from "./utils/priceFetcher";
 import {
   sanitizeNonNegativeNumber,
   sanitizePortfoliosFromUnknown,
@@ -129,7 +128,7 @@ function App() {
     setPriceLoading(true);
     setPriceStatus("실시간 시세/1년 KPI 조회를 시작합니다...");
     try {
-      const { prices, failedCodes } = await fetchPricesByCodes(
+      const { prices } = await fetchPricesByCodes(
         codes,
         (done, total, code) => {
           const name = codeNameMap[code] ?? code;
@@ -149,10 +148,7 @@ function App() {
         );
       }
 
-      const {
-        historyByCode: loadedHistory,
-        failedCodes: failedHistoryCodes,
-      } = await fetchOneYearHistoriesByCodes(codes, (done, total, code) => {
+      const { historyByCode: loadedHistory } = await fetchOneYearHistoriesByCodes(codes, (done, total, code) => {
         const name = codeNameMap[code] ?? code;
         setPriceStatus(`KPI(1년) 조회 ${done}/${total}: ${name}`);
       });
@@ -174,10 +170,6 @@ function App() {
       const historySuccessCount = Object.keys(loadedHistory).length;
       if (successCount === 0) {
         setPriceStatus("시세 조회 실패: 기존 가격 유지");
-      } else if (failedCodes.length > 0 || failedHistoryCodes.length > 0) {
-        setPriceStatus(
-          `시세·KPI 갱신 ${timeText} · 시세 ${successCount}/${codes.length}, KPI ${historySuccessCount}/${codes.length}`
-        );
       } else {
         setPriceStatus(
           `시세·KPI 갱신 ${timeText} · 시세 ${successCount}/${codes.length}, KPI ${historySuccessCount}/${codes.length}`
