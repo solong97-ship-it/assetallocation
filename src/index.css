@@ -1,17 +1,323 @@
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700;800&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  font-family: "Pretendard", "SUIT", "Noto Sans KR", sans-serif;
+  --font-ui: "Space Grotesk", "Apple SD Gothic Neo", "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-title: "Space Grotesk", "Apple SD Gothic Neo", "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --bg-0: #080808;
+  --bg-1: #101010;
+  --bg-2: #171717;
+  --bg-3: #1f1f1f;
+  --line: rgba(255, 255, 255, 0.08);
+  --line-strong: rgba(255, 255, 255, 0.15);
+  --text-strong: #f7f7f7;
+  --text-base: #d8d8d8;
+  --text-muted: #a2a2a2;
+  font-family: var(--font-ui);
+  color-scheme: dark;
 }
 
 * {
   box-sizing: border-box;
 }
 
+html {
+  background: var(--bg-0);
+}
+
 body {
   margin: 0;
+  font-family: var(--font-ui);
+  letter-spacing: -0.01em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  background:
+    radial-gradient(circle at 14% 12%, rgba(255, 255, 255, 0.08), transparent 24%),
+    radial-gradient(circle at 86% 18%, rgba(255, 255, 255, 0.05), transparent 20%),
+    linear-gradient(180deg, #111111 0%, #0b0b0b 42%, #050505 100%);
+  color: var(--text-strong);
+}
+
+body::selection {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+.ai-title {
+  font-family: var(--font-title);
+  letter-spacing: -0.045em;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.neo-theme {
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.05), transparent 28%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 18%),
+    linear-gradient(180deg, #111111 0%, #090909 48%, #050505 100%);
+}
+
+.neo-theme::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 18%),
+    radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.04), transparent 32%);
+}
+
+.neo-theme > * {
+  position: relative;
+  z-index: 1;
+}
+
+.neo-theme .text-slate-900 {
+  color: #ffffff !important;
+}
+
+.neo-theme .text-slate-800 {
+  color: #f0f0f0 !important;
+}
+
+.neo-theme .text-slate-700 {
+  color: #dfdfdf !important;
+}
+
+.neo-theme .text-slate-600 {
+  color: #bebebe !important;
+}
+
+.neo-theme .text-slate-500,
+.neo-theme .text-slate-400 {
+  color: var(--text-muted) !important;
+}
+
+.neo-theme .text-brand-700,
+.neo-theme .text-brand-800 {
+  color: #fafafa !important;
+}
+
+.neo-theme [class*="bg-white"] {
+  background: linear-gradient(180deg, rgba(29, 29, 29, 0.88), rgba(17, 17, 17, 0.96)) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(110%);
+  backdrop-filter: blur(18px) saturate(110%);
+}
+
+.neo-theme [class*="bg-slate-50"],
+.neo-theme [class*="bg-slate-100"],
+.neo-theme [class*="bg-sky-50"] {
+  background: rgba(255, 255, 255, 0.04) !important;
+}
+
+.neo-theme .bg-brand-100,
+.neo-theme [class*="bg-brand-100/80"] {
+  background: rgba(255, 255, 255, 0.06) !important;
+}
+
+.neo-theme .bg-brand-700 {
+  background: linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 100%) !important;
+}
+
+.neo-theme .bg-brand-400 {
+  background-color: rgba(255, 255, 255, 0.46) !important;
+}
+
+.neo-theme .bg-brand-600 {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.neo-theme .from-brand-500 {
+  --tw-gradient-from: rgba(255, 255, 255, 0.92) var(--tw-gradient-from-position) !important;
+  --tw-gradient-to: rgba(255, 255, 255, 0) var(--tw-gradient-to-position) !important;
+}
+
+.neo-theme .via-brand-400 {
+  --tw-gradient-to: rgba(255, 255, 255, 0) var(--tw-gradient-to-position) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), rgba(196, 196, 196, 0.76) var(--tw-gradient-via-position), var(--tw-gradient-to) !important;
+}
+
+.neo-theme .to-brand-300 {
+  --tw-gradient-to: rgba(120, 120, 120, 0.82) var(--tw-gradient-to-position) !important;
+}
+
+.neo-theme [class*="border-slate-"],
+.neo-theme [class*="border-sky-"],
+.neo-theme [class*="border-white"],
+.neo-theme [class*="border-brand-"] {
+  border-color: var(--line) !important;
+}
+
+.neo-theme [class*="border-brand-200/70"] {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.neo-theme .hover\:border-brand-300:hover,
+.neo-theme .hover\:border-brand-200:hover {
+  border-color: rgba(255, 255, 255, 0.18) !important;
+}
+
+.neo-theme .hover\:bg-brand-50:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+.neo-theme .hover\:text-brand-700:hover {
+  color: #ffffff !important;
+}
+
+.neo-theme .rounded-3xl,
+.neo-theme .rounded-2xl,
+.neo-theme .rounded-xl {
+  box-shadow:
+    0 16px 34px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(255, 255, 255, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+}
+
+.neo-theme .text-xs {
+  font-size: 0.82rem !important;
+  line-height: 1.28rem !important;
+}
+
+.neo-theme [class*="text-[11px]"],
+.neo-theme [class*="text-[10px]"] {
+  font-size: 0.82rem !important;
+  line-height: 1.22rem !important;
+}
+
+.neo-theme .font-semibold,
+.neo-theme .font-bold,
+.neo-theme .font-black {
+  letter-spacing: -0.015em;
+}
+
+.neo-panel {
+  border: 1px solid var(--line-strong) !important;
+  border-radius: 26px;
+  background:
+    linear-gradient(180deg, rgba(24, 24, 24, 0.94), rgba(13, 13, 13, 0.98)) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(110%);
+  backdrop-filter: blur(18px) saturate(110%);
+}
+
+.neo-subpanel {
+  border: 1px solid var(--line) !important;
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(28, 28, 28, 0.96), rgba(19, 19, 19, 0.98)) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(105%);
+  backdrop-filter: blur(14px) saturate(105%);
+  box-shadow:
+    0 10px 24px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+}
+
+.neo-chip {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #f5f5f5;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.neo-input {
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04) !important;
+  color: #f8f8f8 !important;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.neo-input::placeholder {
+  color: rgba(255, 255, 255, 0.34);
+}
+
+.neo-input:focus {
+  box-shadow:
+    0 0 0 2px rgba(255, 255, 255, 0.08),
+    0 10px 26px rgba(0, 0, 0, 0.28) !important;
+}
+
+.neo-btn {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.neo-btn:hover {
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.06),
+    0 14px 28px rgba(0, 0, 0, 0.22);
+}
+
+.neo-btn:disabled {
+  opacity: 0.58;
+}
+
+.neo-disclosure > summary::-webkit-details-marker {
+  display: none;
+}
+
+.neo-disclosure[open] summary {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.neo-table th,
+.neo-table td {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  font-size: 0.86rem;
+  line-height: 1.34rem;
+}
+
+.neo-table thead th {
+  background: rgba(20, 20, 20, 0.98) !important;
+  color: #f2f2f2 !important;
+}
+
+.neo-table .sticky-col {
+  background: rgba(15, 15, 15, 0.98) !important;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.22);
+  background-clip: padding-box;
 }
 
 input::-webkit-outer-spin-button,

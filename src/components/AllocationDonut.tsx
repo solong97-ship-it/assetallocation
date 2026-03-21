@@ -14,7 +14,7 @@ function AllocationDonut({ safeWeight, riskyWeight }: Props) {
   return (
     <div className="rounded-2xl border border-white/60 bg-white/85 p-4 shadow-sm">
       <p className="text-sm font-semibold text-slate-600">자산 배분</p>
-      <div className="mt-3 flex items-center gap-5">
+      <div className="mt-3 flex flex-col items-center gap-4 sm:flex-row sm:items-center sm:gap-5">
         <div
           className="relative h-28 w-28 shrink-0 rounded-full"
           style={{
@@ -30,7 +30,7 @@ function AllocationDonut({ safeWeight, riskyWeight }: Props) {
             </span>
           </div>
         </div>
-        <div className="space-y-3 text-sm">
+        <div className="space-y-3 text-center text-sm sm:text-left">
           <div>
             <p className="text-[10px] font-medium text-slate-400">안전자산</p>
             <p className="text-lg font-bold text-sky-600">{formatPercent(safeWeight)}</p>

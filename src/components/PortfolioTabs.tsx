@@ -8,7 +8,7 @@ type Props = {
 
 function PortfolioTabs({ portfolios, activeId, onChange }: Props) {
   return (
-    <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
+    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:flex lg:flex-wrap">
       {portfolios.map((portfolio) => {
         const active = portfolio.id === activeId;
         return (
@@ -16,7 +16,7 @@ function PortfolioTabs({ portfolios, activeId, onChange }: Props) {
             key={portfolio.id}
             type="button"
             onClick={() => onChange(portfolio.id)}
-            className={`shrink-0 rounded-full border px-4 py-2 text-sm font-semibold transition ${
+            className={`w-full rounded-full border px-3 py-2.5 text-sm font-semibold transition lg:w-auto lg:px-4 ${
               active
                 ? "border-brand-500 bg-brand-500 text-white shadow-glow"
                 : "border-white/70 bg-white/80 text-slate-700 hover:border-brand-300 hover:text-brand-700"

@@ -4,20 +4,20 @@ export default {
   theme: {
     extend: {
       boxShadow: {
-        glow: "0 10px 30px rgba(255, 106, 77, 0.18)",
+        glow: "0 14px 36px rgba(0, 0, 0, 0.3)",
       },
       colors: {
         brand: {
-          50: "#fff8f6",
-          100: "#ffede7",
-          200: "#ffd8cb",
-          300: "#ffb69f",
-          400: "#ff8a67",
-          500: "#ff6a4d",
-          600: "#f14a29",
-          700: "#c93a1d",
-          800: "#a6341e",
-          900: "#872f1f",
+          50: "#f7f7f7",
+          100: "#ebebeb",
+          200: "#dadada",
+          300: "#b9b9b9",
+          400: "#8f8f8f",
+          500: "#6a6a6a",
+          600: "#4a4a4a",
+          700: "#2c2c2c",
+          800: "#171717",
+          900: "#080808",
         },
       },
       animation: {

@@ -50,9 +50,9 @@ function PortfolioTable({ principal, items, integerShareMode, priceDate, onUpdat
     <div className="overflow-hidden rounded-2xl border border-white/70 bg-white/85 shadow-sm">
       {/* ── 모바일: 종목별 카드 뷰 ── */}
       <div className="md:hidden">
-        <div className="space-y-2 p-3">
+        <div className="space-y-3 p-3">
           {priceDate && (
-            <p className="rounded-lg bg-slate-50 px-3 py-1.5 text-center text-[11px] font-medium text-slate-500">
+            <p className="rounded-lg bg-slate-50 px-3 py-2 text-center text-xs font-semibold text-slate-600">
               📅 현재가격 기준: {priceDate}
             </p>
           )}
@@ -77,11 +77,11 @@ function PortfolioTable({ principal, items, integerShareMode, priceDate, onUpdat
                 }`}
               >
                 {/* 종목 정보 + 매수 결과 */}
-                <div className="flex items-start justify-between gap-2">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-1">
                       <span
-                        className={`inline-block rounded px-1.5 py-0.5 text-[10px] font-bold ${
+                        className={`inline-block rounded px-2 py-0.5 text-[11px] font-bold ${
                           isSafe
                             ? "bg-sky-100 text-sky-700"
                             : "bg-rose-100 text-rose-700"
@@ -89,13 +89,13 @@ function PortfolioTable({ principal, items, integerShareMode, priceDate, onUpdat
                       >
                         {item.category}
                       </span>
-                      <span className="text-[10px] text-slate-400">{item.subCategory}</span>
+                      <span className="text-[11px] text-slate-400">{item.subCategory}</span>
                     </div>
-                    <p className="mt-0.5 truncate font-semibold text-slate-900">{item.name}</p>
-                    <p className="text-[11px] text-slate-400">{item.code}</p>
+                    <p className="mt-1 truncate text-sm font-semibold text-slate-900">{item.name}</p>
+                    <p className="text-xs text-slate-400">{item.code}</p>
                   </div>
                   {/* 핵심 결과: 매수 주식수 + 투자금액 */}
-                  <div className="shrink-0 text-right">
+                  <div className="shrink-0 text-left sm:text-right">
                     <p className="text-xl font-black text-slate-800">
                       {formatNumber(qty)}
                       <span className="ml-0.5 text-sm font-semibold text-slate-500">주</span>
@@ -105,9 +105,9 @@ function PortfolioTable({ principal, items, integerShareMode, priceDate, onUpdat
                 </div>
 
                 {/* 편집 입력창 */}
-                <div className="mt-2.5 grid grid-cols-3 gap-2">
+                <div className="mt-2.5 grid grid-cols-1 gap-2 sm:grid-cols-3">
                   <div>
-                    <label className="mb-1 block text-[10px] font-medium text-slate-500">
+                    <label className="mb-1 block text-[11px] font-medium text-slate-500">
                       배당(%)
                     </label>
                     <input
@@ -117,11 +117,11 @@ function PortfolioTable({ principal, items, integerShareMode, priceDate, onUpdat
                         onUpdateItem(item.id, "dividendYield", numberOnly(e.target.value))
                       }
                       onFocus={(e) => e.currentTarget.select()}
-                      className="w-full rounded-lg border border-slate-200 bg-white px-2 py-2.5 text-center text-sm"
+                      className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-2.5 text-right text-sm sm:text-center"
                     />
                   </div>
                   <div>
-                    <label className="mb-1 block text-[10px] font-medium text-slate-500">
+                    <label className="mb-1 block text-[11px] font-medium text-slate-500">
                       현재가(원)
                     </label>
                     <input
@@ -139,18 +139,18 @@ function PortfolioTable({ principal, items, integerShareMode, priceDate, onUpdat
                         e.currentTarget.select();
                       }}
                       onBlur={() => setFocusedPriceKey(null)}
-                      className={`w-full rounded-lg border px-2 py-2.5 text-center text-sm ${
+                      className={`w-full rounded-lg border px-2.5 py-2.5 text-right text-sm sm:text-center ${
                         invalidPrice
                           ? "border-rose-500 bg-rose-50"
                           : "border-slate-200 bg-white"
                       }`}
                     />
                     {invalidPrice && (
-                      <p className="mt-0.5 text-[10px] text-rose-600">0보다 커야 합니다</p>
+                      <p className="mt-0.5 text-[11px] text-rose-600">0보다 커야 합니다</p>
                     )}
                   </div>
                   <div>
-                    <label className="mb-1 block text-[10px] font-medium text-slate-500">
+                    <label className="mb-1 block text-[11px] font-medium text-slate-500">
                       비중(%)
                     </label>
                     <input
@@ -160,7 +160,7 @@ function PortfolioTable({ principal, items, integerShareMode, priceDate, onUpdat
                         onUpdateItem(item.id, "weight", numberOnly(e.target.value))
                       }
                       onFocus={(e) => e.currentTarget.select()}
-                      className="w-full rounded-lg border border-slate-200 bg-white px-2 py-2.5 text-center text-sm"
+                      className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-2.5 text-right text-sm sm:text-center"
                     />
                   </div>
                 </div>
@@ -170,14 +170,14 @@ function PortfolioTable({ principal, items, integerShareMode, priceDate, onUpdat
         </div>
 
         {/* 모바일 합계 푸터 */}
-        <div className="mx-3 mb-3 flex items-center justify-between rounded-xl bg-slate-900 px-4 py-3 text-white">
+        <div className="mx-3 mb-3 grid grid-cols-1 gap-2 rounded-xl bg-slate-900 px-4 py-3 text-white">
           <div>
-            <p className="text-[10px] text-slate-400">비중 합계</p>
-            <p className="font-bold">{formatPercent(totalWeight)}</p>
+            <p className="text-[11px] text-slate-400">비중 합계</p>
+            <p className="text-base font-bold">{formatPercent(totalWeight)}</p>
           </div>
-          <div className="text-right">
-            <p className="text-[10px] text-slate-400">투자금액 합계</p>
-            <p className="font-bold">{formatCurrencyKRW(totalCheck)}</p>
+          <div>
+            <p className="text-[11px] text-slate-400">투자금액 합계</p>
+            <p className="text-base font-bold">{formatCurrencyKRW(totalCheck)}</p>
           </div>
         </div>
       </div>

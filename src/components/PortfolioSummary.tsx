@@ -41,9 +41,9 @@ function PortfolioSummary({
   return (
     <section className="space-y-3">
       {/* Row 1: 투자금(모바일 full-width) + 비중합계 + 안전자산 */}
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {/* 투자금: 모바일에서 전체 너비 */}
-        <div className="col-span-2 rounded-2xl border border-white/60 bg-white/80 p-4 shadow-sm lg:col-span-1">
+        <div className="col-span-1 rounded-2xl border border-white/60 bg-white/80 p-4 shadow-sm sm:col-span-2 lg:col-span-1">
           <label className="mb-2 block text-sm font-semibold text-slate-600">
             {principalLabel}
           </label>
@@ -93,7 +93,7 @@ function PortfolioSummary({
       </div>
 
       {/* Row 2: 월배당 + 투자금액 합계 */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="rounded-2xl border border-white/60 bg-white/80 p-4 shadow-sm">
           <p className="text-xs font-semibold text-slate-500">예상 월배당</p>
           <p className="mt-1.5 text-2xl font-black text-violet-600">
