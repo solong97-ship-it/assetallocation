@@ -1062,31 +1062,35 @@ function App() {
   };
 
   return (
-    <div className="neo-theme min-h-dvh overflow-x-hidden px-2.5 py-3 text-slate-100 sm:px-4 sm:py-6">
+    <div className="min-h-dvh overflow-x-hidden px-3 py-4 sm:px-4 sm:py-6">
       <div className="mx-auto max-w-[880px] space-y-4">
-        <p className="px-1 text-[10px] tracking-[0.08em] text-slate-500">
-          {PRODUCED_BY_LABEL}
-        </p>
-        <header className="neo-panel rounded-3xl p-4 backdrop-blur sm:p-5">
-          <h1 className="ai-title text-lg font-black tracking-tight text-slate-900 sm:text-2xl">
+
+        {/* ── Header ── */}
+        <header className="app-header px-5 py-5 sm:px-6 sm:py-6">
+          <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-white/50">
+            {PRODUCED_BY_LABEL}
+          </p>
+          <h1 className="text-xl font-black tracking-tight text-white sm:text-2xl">
             절세계좌 자산배분 투자
           </h1>
-          <p className="mt-1 text-xs text-slate-500 sm:text-sm">
+          <p className="mt-2 text-sm leading-relaxed text-white/80">
             투자금액과 전략(A~E)을 선택하면 최신 시세를 우선 반영해 종목별 주식수, 선택한 기간 KPI, 월배당 추정, 검산 차이까지 한 번에 보여줍니다.
           </p>
-          <p className="mt-2 text-[11px] text-slate-500 sm:text-xs">
+          <p className="mt-1.5 text-[11px] leading-relaxed text-white/55">
             핵심 기능: 최신 시세 자동 조회 · 종목별 비중/수량 요약 · KPI 계산 기간 선택(1년/6개월/3개월/1개월) · 실데이터 기준 월배당금 · 투자금액 검산
           </p>
         </header>
 
-        <section className="neo-panel rounded-3xl p-4 sm:p-5">
+        {/* ── 투자 조건 선택 ── */}
+        <section className="ios-card p-4 sm:p-5">
           <h2 className="text-sm font-bold text-slate-700 sm:text-base">투자 조건 선택</h2>
 
-          <div className="mt-3 space-y-3">
+          <div className="mt-3 space-y-4">
+            {/* 투자금액 */}
             <div>
-              <p className="mb-1 text-xs font-semibold text-slate-500">투자금액</p>
+              <p className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">투자금액</p>
               <input
-                className="neo-input w-full rounded-xl px-3 py-2.5 text-right text-base font-bold text-slate-900 outline-none ring-brand-300 transition focus:ring"
+                className="ios-input text-right text-base font-bold"
                 inputMode="decimal"
                 value={
                   principalFocused
@@ -1121,7 +1125,7 @@ function App() {
                         principal: sanitizeNonNegativeNumber(prev.principal + quick.amount, 0),
                       }))
                     }
-                    className="neo-btn rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs font-semibold text-slate-700 transition-transform duration-150 active:translate-y-[1px] active:scale-[0.98] hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700 sm:text-sm"
+                    className="btn-ghost py-2 text-xs"
                   >
                     +{quick.label}
                   </button>
@@ -1129,8 +1133,9 @@ function App() {
               </div>
             </div>
 
+            {/* 투자방식 */}
             <div>
-              <p className="mb-1 text-xs font-semibold text-slate-500">투자방식</p>
+              <p className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">투자방식</p>
               <div className="grid grid-cols-5 gap-2">
                 {(["A", "B", "C", "D", "E"] as StrategyType[]).map((strategy) => {
                   const active = selection.strategy === strategy;
@@ -1148,10 +1153,10 @@ function App() {
                               : null,
                         }))
                       }
-                      className={`rounded-lg border px-2 py-2 text-sm font-bold transition-transform duration-150 active:translate-y-[1px] active:scale-[0.98] ${
+                      className={`rounded-xl border py-2.5 text-sm font-bold transition ${
                         active
-                          ? "neo-btn border-brand-500 bg-brand-700 text-white shadow-[0_14px_28px_rgba(0,0,0,0.34)]"
-                          : "neo-btn border-slate-200 bg-white text-slate-700 hover:border-brand-300 hover:text-brand-700"
+                          ? "border-brand-500 bg-brand-500 text-white shadow-glow"
+                          : "border-slate-200 bg-white text-slate-600 hover:border-brand-300 hover:text-brand-600"
                       }`}
                     >
                       {strategy}
@@ -1159,7 +1164,7 @@ function App() {
                   );
                 })}
               </div>
-              <div className="mt-2 grid grid-cols-1 gap-1.5 text-[11px] text-slate-500 sm:grid-cols-2">
+              <div className="mt-2 grid grid-cols-1 gap-1 text-[11px] text-slate-500 sm:grid-cols-2">
                 {(["A", "B", "C", "D", "E"] as StrategyType[]).map((strategy) => (
                   <p key={strategy}>
                     <span className="font-semibold text-slate-700">{strategy}</span> · {strategyDescriptions[strategy]}
@@ -1168,34 +1173,29 @@ function App() {
               </div>
             </div>
 
+            {/* 투자성향 */}
             {requiresMode && (
               <div>
-                <p className="mb-1 text-xs font-semibold text-slate-500">A/B 투자성향 선택</p>
+                <p className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">A/B 투자성향</p>
                 <div className="grid grid-cols-3 gap-2">
-                  {(["안정형", "중립형", "성장형"] as PortfolioMode[]).map((mode) => {
-                    const active = selection.mode === mode;
-                    return (
-                      <button
-                        key={mode}
-                        type="button"
-                        onClick={() => setSelection((prev) => ({ ...prev, mode }))}
-                        className={`rounded-lg border px-2 py-2 text-xs font-bold transition-transform duration-150 active:translate-y-[1px] active:scale-[0.98] sm:text-sm ${
-                          active
-                            ? "neo-btn border-brand-600 bg-brand-700 text-white shadow-[0_14px_28px_rgba(0,0,0,0.34)]"
-                            : "neo-btn border-slate-200 bg-white text-slate-700 hover:border-brand-200 hover:bg-brand-50"
-                        }`}
-                      >
-                        {mode}
-                      </button>
-                    );
-                  })}
+                  {(["안정형", "중립형", "성장형"] as PortfolioMode[]).map((mode) => (
+                    <button
+                      key={mode}
+                      type="button"
+                      onClick={() => setSelection((prev) => ({ ...prev, mode }))}
+                      className={`mode-btn mode-${mode} ${selection.mode === mode ? "active" : ""}`}
+                    >
+                      {mode}
+                    </button>
+                  ))}
                 </div>
               </div>
             )}
 
+            {/* KPI 기간 */}
             <div>
-              <p className="mb-1 text-xs font-semibold text-slate-500">KPI 기간 선택</p>
-              <div className="grid grid-cols-3 gap-2">
+              <p className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">KPI 기간</p>
+              <div className="grid grid-cols-4 gap-2">
                 {KPI_WINDOW_LIST.map((window) => {
                   const active = selection.kpiWindow === window;
                   return (
@@ -1203,10 +1203,10 @@ function App() {
                       key={window}
                       type="button"
                       onClick={() => setSelection((prev) => ({ ...prev, kpiWindow: window }))}
-                      className={`rounded-lg border px-2 py-2 text-xs font-bold transition-transform duration-150 active:translate-y-[1px] active:scale-[0.98] sm:text-sm ${
+                      className={`rounded-xl border py-2 text-xs font-bold transition ${
                         active
-                          ? "neo-btn border-brand-600 bg-brand-700 text-white shadow-[0_14px_28px_rgba(0,0,0,0.34)]"
-                          : "neo-btn border-slate-200 bg-white text-slate-700 hover:border-brand-200 hover:bg-brand-50"
+                          ? "border-brand-500 bg-brand-500 text-white"
+                          : "border-slate-200 bg-white text-slate-600 hover:border-brand-300 hover:text-brand-600"
                       }`}
                     >
                       {KPI_WINDOW_LABELS[window]}
@@ -1216,40 +1216,42 @@ function App() {
               </div>
             </div>
 
+            {/* 결과 보기 */}
             <button
               type="button"
               onClick={handleShowResult}
               disabled={!canShowResult || isRefreshing}
-              className="neo-btn w-full rounded-xl border border-brand-200 bg-brand-100 px-4 py-3 text-sm font-bold text-brand-700 transition-transform duration-150 active:translate-y-[1px] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
+              className="btn-primary w-full justify-center py-3 text-sm"
             >
               {isRefreshing ? (
-                <span className="inline-flex items-center gap-2">
-                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-brand-600 border-r-transparent" />
+                <>
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-r-transparent" />
                   조회 진행 중...
-                </span>
-              ) : (
-                "결과 보기"
-              )}
+                </>
+              ) : "결과 보기"}
             </button>
           </div>
         </section>
 
+        {/* ── 결과 섹션 ── */}
         {resultPortfolio && appliedSelection && (
-          <section className="neo-panel rounded-3xl p-4 sm:p-5">
+          <section className="ios-card p-4 sm:p-5 animate-fade-in">
+
+            {/* 상단 - 설정 요약 + 새로고침 */}
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex flex-wrap gap-2 text-xs sm:text-sm">
-                <span className="neo-chip px-3 py-1 font-semibold">
-                  투자금액 {formatCurrencyKRW(appliedSelection.principal)}
+              <div className="flex flex-wrap gap-1.5">
+                <span className="inline-flex items-center rounded-full bg-brand-100 px-3 py-1 text-xs font-semibold text-brand-700">
+                  {formatCurrencyKRW(appliedSelection.principal)}
                 </span>
-                <span className="neo-chip px-3 py-1 font-semibold">
-                  방식 {appliedSelection.strategy}
+                <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+                  {appliedSelection.strategy}형
                 </span>
                 {(appliedSelection.strategy === "A" || appliedSelection.strategy === "B") && (
-                  <span className="neo-chip px-3 py-1 font-semibold">
-                    성향 {appliedSelection.mode}
+                  <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+                    {appliedSelection.mode}
                   </span>
                 )}
-                <span className="neo-chip px-3 py-1 font-semibold">
+                <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
                   KPI {KPI_WINDOW_LABELS[appliedSelection.kpiWindow]}
                 </span>
               </div>
@@ -1257,26 +1259,21 @@ function App() {
                 type="button"
                 onClick={handleRefreshLatest}
                 disabled={isRefreshing}
-                className={`neo-btn rounded-xl border px-3 py-2 text-xs font-semibold transition-transform duration-150 active:translate-y-[1px] active:scale-[0.98] sm:text-sm ${
-                  isRefreshing
-                    ? "border-brand-300 bg-brand-100 text-brand-700 shadow-sm shadow-brand-100"
-                    : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
-                } disabled:cursor-not-allowed`}
+                className="btn-ghost disabled:opacity-50"
               >
                 {isRefreshing ? (
-                  <span className="inline-flex items-center gap-2">
-                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-brand-600 border-r-transparent" />
+                  <>
+                    <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-brand-500 border-r-transparent" />
                     {refreshActionLabel}
-                  </span>
-                ) : (
-                  "최신 시세 다시 조회"
-                )}
+                  </>
+                ) : "최신 시세 다시 조회"}
               </button>
             </div>
 
-            <div className="neo-subpanel mt-3 rounded-2xl p-3">
+            {/* 진행 상태 */}
+            <div className="ios-subcard mt-3 p-3">
               <p className="text-xs text-slate-600">{refreshMessage}</p>
-              <div className="mt-2 h-2 overflow-hidden rounded-full bg-brand-100/80">
+              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-brand-100">
                 <div
                   className={`h-full rounded-full transition-all duration-500 ${
                     isRefreshing
@@ -1287,273 +1284,249 @@ function App() {
                 />
               </div>
               {isRefreshing && (
-                <div className="neo-subpanel mt-2 flex items-center gap-2 rounded-xl px-2.5 py-2">
-                  <span className="relative flex h-2.5 w-2.5">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-400 opacity-75" />
-                    <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-brand-600" />
-                  </span>
-                  <p className="text-xs font-bold text-brand-700">
-                    {refreshState.stage === "price"
-                      ? "실시간 시세 조회를 진행 중입니다."
-                      : "KPI용 히스토리 조회를 진행 중입니다."}
+                <div className="mt-2 flex items-center gap-2">
+                  <span className="status-dot status-dot-loading" />
+                  <p className="text-xs font-semibold text-brand-700">
+                    {refreshState.stage === "price" ? "실시간 시세 조회 중" : "KPI 히스토리 조회 중"}
                   </p>
                 </div>
               )}
-              <div className="mt-2 grid grid-cols-2 gap-2 text-xs sm:grid-cols-3">
-                <p className="text-slate-600">단계: <span className="font-semibold">{refreshStageText[refreshState.stage]}</span></p>
-                <p className="text-slate-600">진행률: <span className="font-semibold">{doneSteps}/{totalSteps} ({progressPercent}%)</span></p>
-                <p className="text-slate-600">현재 처리: <span className="font-semibold">{refreshState.currentName ?? "-"}</span></p>
-                <p className="text-slate-600">시세 성공/실패: <span className="font-semibold">{refreshState.priceSuccess}/{refreshState.priceFailed}</span></p>
-                <p className="text-slate-600">KPI 성공/실패: <span className="font-semibold">{refreshState.kpiSuccess}/{refreshState.kpiFailed}</span></p>
-                <p className="text-slate-600">포트폴리오 적용 시세: <span className="font-semibold">{refreshState.priceAppliedDate ?? "-"}</span></p>
-                <p className="text-slate-600">최종 갱신: <span className="font-semibold">{refreshState.lastUpdatedAt ?? "-"}</span></p>
+              <div className="mt-2 grid grid-cols-2 gap-1.5 text-[11px] text-slate-500 sm:grid-cols-3">
+                <p>단계: <span className="font-semibold text-slate-700">{refreshStageText[refreshState.stage]}</span></p>
+                <p>진행: <span className="font-semibold text-slate-700">{doneSteps}/{totalSteps} ({progressPercent}%)</span></p>
+                <p>처리중: <span className="font-semibold text-slate-700">{refreshState.currentName ?? "-"}</span></p>
+                <p>시세: <span className="font-semibold text-slate-700">{refreshState.priceSuccess}성공 / {refreshState.priceFailed}실패</span></p>
+                <p>KPI: <span className="font-semibold text-slate-700">{refreshState.kpiSuccess}성공 / {refreshState.kpiFailed}실패</span></p>
+                <p>적용 시세일: <span className="font-semibold text-slate-700">{refreshState.priceAppliedDate ?? "-"}</span></p>
+                <p className="sm:col-span-2">최종 갱신: <span className="font-semibold text-slate-700">{refreshState.lastUpdatedAt ?? "-"}</span></p>
               </div>
             </div>
 
-            <div className="neo-subpanel mt-3 rounded-2xl p-3">
-              <div className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-3">
-                <p className="text-slate-600">
-                  종목 수 <span className="font-bold text-slate-900">{resultRows.length}개</span>
-                </p>
-                <p className="text-slate-600">
-                  비중 합계 <span className="font-bold text-slate-900">{formatPercent(weightSum)}</span>
-                </p>
-                <p className="text-slate-600">
-                  투자금액 합계 <span className="font-bold text-slate-900">{formatCurrencyKRW(totalCheckAmount)}</span>
-                </p>
+            {/* 포트폴리오 요약 */}
+            <div className="ios-subcard mt-3 p-3">
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <p className="metric-label">종목 수</p>
+                  <p className="metric-value text-slate-800">{resultRows.length}<span className="text-sm font-semibold">개</span></p>
+                </div>
+                <div>
+                  <p className="metric-label">비중 합계</p>
+                  <p className="metric-value text-slate-800">{formatPercent(weightSum)}</p>
+                </div>
+                <div>
+                  <p className="metric-label">투자금액 합계</p>
+                  <p className="text-sm font-bold text-slate-700 leading-tight mt-1">{formatCurrencyKRW(totalCheckAmount)}</p>
+                </div>
               </div>
             </div>
 
-            <div className="neo-subpanel mt-3 rounded-2xl p-3">
-              <p className="text-sm font-bold text-slate-800">월배당금 정보</p>
-              <div className="mt-2 grid grid-cols-1 gap-2 text-xs sm:grid-cols-2">
-                <p className="text-slate-600">
-                  배당률 기준:{" "}
-                  <span className="font-semibold text-slate-900">
+            {/* 월배당금 */}
+            <div className="ios-subcard mt-3 p-3">
+              <p className="text-sm font-bold text-slate-700">월배당금 정보</p>
+              <div className="mt-3 grid grid-cols-2 gap-3">
+                <div>
+                  <p className="metric-label">배당률 (KPI 기간)</p>
+                  <p className="metric-value text-emerald-600">
                     {selectedWindowKpi != null ? formatPercent(selectedWindowKpi.annualDividendYield) : "-"}
-                  </span>
-                </p>
-                <p className="text-slate-600">
-                  실데이터 연배당금:{" "}
-                  <span className="font-semibold text-slate-900">
-                    {annualDividendBySelectedWindow != null ? formatCurrencyKRW(annualDividendBySelectedWindow) : "-"}
-                  </span>
-                </p>
-                <p className="text-slate-600">
-                  실데이터 월배당금:{" "}
-                  <span className="font-bold text-brand-700">
+                  </p>
+                </div>
+                <div>
+                  <p className="metric-label">월배당금 (실데이터)</p>
+                  <p className="metric-value text-brand-600">
                     {monthlyDividendBySelectedWindow != null ? formatCurrencyKRW(monthlyDividendBySelectedWindow) : "-"}
-                  </span>
-                </p>
-                <p className="text-[11px] text-slate-500">
-                  선택한 KPI 기간(실데이터) 배당률을 투자금액에 적용해 산출합니다.
-                </p>
+                  </p>
+                </div>
               </div>
+              <p className="mt-2 text-[10px] text-slate-400">선택한 KPI 기간 실데이터 배당률 × 투자금액 ÷ 12</p>
             </div>
 
-            <div className="neo-subpanel mt-3 rounded-2xl p-3">
+            {/* KPI 비교 */}
+            <div className="ios-subcard mt-3 p-3">
               <p className="text-sm font-bold text-slate-700">KPI 비교 (평균 vs 최근 {activeKpiLabel})</p>
-              <p className="mt-1 text-[11px] text-slate-500">CAGR은 배당 재투자 기준으로 계산합니다.</p>
-              <p className="mt-1 text-xs text-slate-500">
-                {activeKpiLabel} KPI 계산 기간:{" "}
-                <span className="font-semibold text-slate-700">
-                  {selectedKpiPeriod
-                    ? `${formatYmdFromDashDate(selectedKpiPeriod.start)}~${formatYmdFromDashDate(selectedKpiPeriod.end)}`
-                    : "-"}
-                </span>
+              <p className="mt-0.5 text-[10px] text-slate-400">
+                CAGR은 배당 재투자 기준 · 기간:{" "}
+                {selectedKpiPeriod
+                  ? `${formatYmdFromDashDate(selectedKpiPeriod.start)} ~ ${formatYmdFromDashDate(selectedKpiPeriod.end)}`
+                  : "-"}
               </p>
-              <div className="mt-2 grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
-                <div className="neo-subpanel rounded-xl p-3">
-                  <p className="text-xs font-semibold text-slate-500">평균 KPI (전략 기준)</p>
-                  <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
-                    <p>CAGR <span className="font-semibold text-slate-800">{averageKpi ? formatPercent(averageKpi.cagr) : "-"}</span></p>
-                    <p>MDD <span className="font-semibold text-slate-800">{averageKpi ? formatPercent(averageKpi.mdd) : "-"}</span></p>
-                    <p>Sharpe <span className="font-semibold text-slate-800">{averageKpi ? averageKpi.sharpe.toFixed(2) : "-"}</span></p>
-                    <p>배당률 <span className="font-semibold text-slate-800">{averageKpi ? formatPercent(averageKpi.annualDividendYield) : "-"}</span></p>
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">평균 KPI</p>
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-slate-500">CAGR</span>
+                      <span className="font-bold text-emerald-600">{averageKpi ? formatPercent(averageKpi.cagr) : "-"}</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-slate-500">MDD</span>
+                      <span className="font-bold text-rose-500">{averageKpi ? formatPercent(averageKpi.mdd) : "-"}</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-slate-500">Sharpe</span>
+                      <span className="font-bold text-brand-600">{averageKpi ? averageKpi.sharpe.toFixed(2) : "-"}</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-slate-500">배당률</span>
+                      <span className="font-bold text-slate-700">{averageKpi ? formatPercent(averageKpi.annualDividendYield) : "-"}</span>
+                    </div>
                   </div>
                 </div>
-                <div className="neo-subpanel rounded-xl p-3">
-                  <p className="text-xs font-semibold text-slate-500">최근 {activeKpiLabel} KPI (실데이터)</p>
-                  <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
-                    <p>CAGR <span className="font-semibold text-slate-800">{selectedWindowKpi ? formatPercent(selectedWindowKpi.cagr) : "-"}</span></p>
-                    <p>MDD <span className="font-semibold text-slate-800">{selectedWindowKpi ? formatPercent(selectedWindowKpi.mdd) : "-"}</span></p>
-                    <p>Sharpe <span className="font-semibold text-slate-800">{selectedWindowKpi ? selectedWindowKpi.sharpe.toFixed(2) : "-"}</span></p>
-                    <p>배당률 <span className="font-semibold text-slate-800">{selectedWindowKpi ? formatPercent(selectedWindowKpi.annualDividendYield) : "-"}</span></p>
+                <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">최근 {activeKpiLabel} KPI</p>
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-slate-500">CAGR</span>
+                      <span className="font-bold text-emerald-600">{selectedWindowKpi ? formatPercent(selectedWindowKpi.cagr) : "-"}</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-slate-500">MDD</span>
+                      <span className="font-bold text-rose-500">{selectedWindowKpi ? formatPercent(selectedWindowKpi.mdd) : "-"}</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-slate-500">Sharpe</span>
+                      <span className="font-bold text-brand-600">{selectedWindowKpi ? selectedWindowKpi.sharpe.toFixed(2) : "-"}</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-slate-500">배당률</span>
+                      <span className="font-bold text-slate-700">{selectedWindowKpi ? formatPercent(selectedWindowKpi.annualDividendYield) : "-"}</span>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
+            {/* 종목 상세 */}
             <div className="mt-3 space-y-2">
               {resultRows.map(({ item, quantity, amount, priceFetchedDate, periodReturnByWindow, appliedDividendYield }) => (
-                <details
-                  key={item.id}
-                  className="neo-subpanel neo-disclosure overflow-hidden rounded-xl"
-                >
-                  <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-3 py-3">
-                    <div className="min-w-0">
-                      <p className="truncate text-xs font-semibold text-slate-900">
-                        <span className="mr-1 text-brand-700">[{formatPercent(item.weight)}]</span>
+                <details key={item.id} className="ios-subcard overflow-hidden">
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-2 p-3">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold text-slate-800">
+                        <span className="mr-1.5 inline-block rounded bg-brand-50 px-1.5 py-0.5 text-[10px] font-bold text-brand-600">
+                          {formatPercent(item.weight)}
+                        </span>
                         {item.name}
                       </p>
-                      <p className="text-xs text-slate-400">{item.code}</p>
+                      <p className="mt-0.5 text-[11px] text-slate-400">{item.code} · {item.category}</p>
                     </div>
-                    <div className="text-right">
-                      <p className="text-base font-black text-slate-900">{formatNumber(quantity)}주</p>
-                      <p className="text-xs font-semibold text-slate-500">{formatCurrencyKRW(amount)}</p>
+                    <div className="shrink-0 text-right">
+                      <p className="text-lg font-black text-slate-900">{formatNumber(quantity)}<span className="ml-0.5 text-sm font-semibold">주</span></p>
+                      <p className="text-xs text-slate-500">{formatCurrencyKRW(amount)}</p>
                     </div>
                   </summary>
-                  <div className="grid grid-cols-2 gap-2 border-t border-slate-100 bg-slate-50/60 px-3 py-3 text-xs text-slate-600">
-                    <p>분류: <span className="font-semibold text-slate-800">{item.category}</span></p>
-                    <p>세부분류: <span className="font-semibold text-slate-800">{item.subCategory}</span></p>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 border-t border-slate-100 bg-slate-50/80 px-3 py-3 text-xs text-slate-500">
                     <p>현재가: <span className="font-semibold text-slate-800">{formatCurrencyKRW(item.price)}</span></p>
                     <p>조회일: <span className="font-semibold text-slate-800">{priceFetchedDate ?? "-"}</span></p>
-                    <p>비중: <span className="font-semibold text-slate-800">{formatPercent(item.weight)}</span></p>
-                    <p>실지급 배당률: <span className="font-semibold text-slate-800">{formatPercent(appliedDividendYield)}</span></p>
+                    <p>세부분류: <span className="font-semibold text-slate-800">{item.subCategory}</span></p>
+                    <p>배당률: <span className="font-semibold text-slate-800">{formatPercent(appliedDividendYield)}</span></p>
                     <p>투자금액: <span className="font-semibold text-slate-800">{formatCurrencyKRW(amount)}</span></p>
-                    <p>1년 기간 수익률(실제): <span className="font-semibold text-slate-800">{periodReturnByWindow["1Y"] != null ? formatPercent(periodReturnByWindow["1Y"]) : "-"}</span></p>
-                    <p>6개월 기간 수익률(실제): <span className="font-semibold text-slate-800">{periodReturnByWindow["6M"] != null ? formatPercent(periodReturnByWindow["6M"]) : "-"}</span></p>
-                    <p>3개월 기간 수익률(실제): <span className="font-semibold text-slate-800">{periodReturnByWindow["3M"] != null ? formatPercent(periodReturnByWindow["3M"]) : "-"}</span></p>
-                    <p>1개월 기간 수익률(실제): <span className="font-semibold text-slate-800">{periodReturnByWindow["1M"] != null ? formatPercent(periodReturnByWindow["1M"]) : "-"}</span></p>
+                    <p>1년 수익률: <span className="font-semibold text-slate-800">{periodReturnByWindow["1Y"] != null ? formatPercent(periodReturnByWindow["1Y"]) : "-"}</span></p>
+                    <p>6개월 수익률: <span className="font-semibold text-slate-800">{periodReturnByWindow["6M"] != null ? formatPercent(periodReturnByWindow["6M"]) : "-"}</span></p>
+                    <p>3개월 수익률: <span className="font-semibold text-slate-800">{periodReturnByWindow["3M"] != null ? formatPercent(periodReturnByWindow["3M"]) : "-"}</span></p>
+                    <p>1개월 수익률: <span className="font-semibold text-slate-800">{periodReturnByWindow["1M"] != null ? formatPercent(periodReturnByWindow["1M"]) : "-"}</span></p>
                   </div>
                 </details>
               ))}
             </div>
 
-            <div className="neo-subpanel mt-3 rounded-2xl p-3">
-              <p className="text-sm font-bold text-slate-800">검산</p>
+            {/* 검산 */}
+            <div className="ios-subcard mt-3 p-3">
+              <p className="text-sm font-bold text-slate-700">검산</p>
               <div className="mt-2 grid grid-cols-1 gap-1.5 text-xs sm:grid-cols-2">
-                <p className="text-slate-600">
-                  입력 투자금액: <span className="font-semibold text-slate-900">{formatCurrencyKRW(investedPrincipal)}</span>
+                <p className="text-slate-500">
+                  입력 투자금액 <span className="font-semibold text-slate-800">{formatCurrencyKRW(investedPrincipal)}</span>
                 </p>
-                <p className="text-slate-600">
-                  종목 합계(현재가×주식수): <span className="font-semibold text-slate-900">{formatCurrencyKRW(totalCheckAmount)}</span>
+                <p className="text-slate-500">
+                  종목 합계 <span className="font-semibold text-slate-800">{formatCurrencyKRW(totalCheckAmount)}</span>
                 </p>
-                <p className="text-slate-600 sm:col-span-2">
-                  차이 금액(투자금액-종목합계):{" "}
-                  <span
-                    className={`font-bold ${
-                      roundingGap > 0 ? "text-emerald-700" : roundingGap < 0 ? "text-rose-700" : "text-slate-800"
-                    }`}
-                  >
+                <p className="sm:col-span-2 text-slate-500">
+                  차이(투자금-종목합계){" "}
+                  <span className={`font-bold ${roundingGap > 0 ? "text-emerald-600" : roundingGap < 0 ? "text-rose-600" : "text-slate-700"}`}>
                     {formatSignedCurrencyKRW(roundingGap)}
                   </span>
-                  <span className="ml-1 text-slate-500">({roundingGapLabel})</span>
+                  <span className="ml-1 text-slate-400">({roundingGapLabel})</span>
                 </p>
-                <p className="text-[11px] text-slate-500 sm:col-span-2">
-                  주식수 정수 반올림 적용으로 소액 차이가 발생할 수 있습니다.
-                </p>
+                <p className="sm:col-span-2 text-[10px] text-slate-400">주식수 정수 반올림 적용으로 소액 차이가 발생할 수 있습니다.</p>
               </div>
             </div>
 
-            <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
-              <button
-                type="button"
-                onClick={() => void handleCompareOneYearKpi("ABCDE")}
-                disabled={strategyCompareLoading}
-                className={`neo-btn rounded-xl border px-3 py-2 text-xs font-bold transition-transform duration-150 active:translate-y-[1px] active:scale-[0.98] sm:text-sm ${
-                  strategyCompareMode === "ABCDE"
-                    ? "border-brand-600 bg-brand-700 text-white shadow-[0_10px_22px_rgba(0,0,0,0.34)]"
-                    : "border-brand-300 bg-brand-100 text-brand-800 shadow-[0_8px_16px_rgba(0,0,0,0.2)]"
-                } disabled:cursor-not-allowed disabled:opacity-70`}
-              >
-                {strategyCompareLoading && strategyCompareMode === "ABCDE" ? "조회 중..." : `${activeKpiLabel} KPI 비교 (ABCDE 5개)`}
-              </button>
-              <button
-                type="button"
-                onClick={() => void handleCompareOneYearKpi("A_MODES")}
-                disabled={strategyCompareLoading}
-                className={`neo-btn rounded-xl border px-3 py-2 text-xs font-bold transition-transform duration-150 active:translate-y-[1px] active:scale-[0.98] sm:text-sm ${
-                  strategyCompareMode === "A_MODES"
-                    ? "border-brand-600 bg-brand-700 text-white shadow-[0_10px_22px_rgba(0,0,0,0.34)]"
-                    : "border-brand-300 bg-brand-100 text-brand-800 shadow-[0_8px_16px_rgba(0,0,0,0.2)]"
-                } disabled:cursor-not-allowed disabled:opacity-70`}
-              >
-                {strategyCompareLoading && strategyCompareMode === "A_MODES" ? "조회 중..." : `${activeKpiLabel} KPI 비교 (A: 안정·중립·성장)`}
-              </button>
-              <button
-                type="button"
-                onClick={() => void handleCompareOneYearKpi("B_MODES")}
-                disabled={strategyCompareLoading}
-                className={`neo-btn rounded-xl border px-3 py-2 text-xs font-bold transition-transform duration-150 active:translate-y-[1px] active:scale-[0.98] sm:text-sm ${
-                  strategyCompareMode === "B_MODES"
-                    ? "border-brand-600 bg-brand-700 text-white shadow-[0_10px_22px_rgba(0,0,0,0.34)]"
-                    : "border-brand-300 bg-brand-100 text-brand-800 shadow-[0_8px_16px_rgba(0,0,0,0.2)]"
-                } disabled:cursor-not-allowed disabled:opacity-70`}
-              >
-                {strategyCompareLoading && strategyCompareMode === "B_MODES" ? "조회 중..." : `${activeKpiLabel} KPI 비교 (B: 안정·중립·성장)`}
-              </button>
-              <button
-                type="button"
-                onClick={() => void handleCompareOneYearKpi("A_GROWTH_SP500")}
-                disabled={strategyCompareLoading}
-                className={`neo-btn rounded-xl border px-3 py-2 text-xs font-bold transition-transform duration-150 active:translate-y-[1px] active:scale-[0.98] sm:text-sm ${
-                  strategyCompareMode === "A_GROWTH_SP500"
-                    ? "border-brand-600 bg-brand-700 text-white shadow-[0_10px_22px_rgba(0,0,0,0.34)]"
-                    : "border-brand-300 bg-brand-100 text-brand-800 shadow-[0_8px_16px_rgba(0,0,0,0.2)]"
-                } disabled:cursor-not-allowed disabled:opacity-70`}
-              >
-                {strategyCompareLoading && strategyCompareMode === "A_GROWTH_SP500"
-                  ? "조회 중..."
-                  : `${activeKpiLabel} KPI 비교: A(성장) vs S&P500`}
-              </button>
+            {/* 전략 비교 버튼들 */}
+            <div className="mt-3 grid grid-cols-2 gap-2 lg:grid-cols-4">
+              {[
+                { mode: "ABCDE" as StrategyCompareMode, label: `${activeKpiLabel} KPI (ABCDE)` },
+                { mode: "A_MODES" as StrategyCompareMode, label: `A형: 안정·중립·성장` },
+                { mode: "B_MODES" as StrategyCompareMode, label: `B형: 안정·중립·성장` },
+                { mode: "A_GROWTH_SP500" as StrategyCompareMode, label: `A(성장) vs S&P500` },
+              ].map(({ mode, label }) => (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => void handleCompareOneYearKpi(mode)}
+                  disabled={strategyCompareLoading}
+                  className={`rounded-xl border px-3 py-2.5 text-xs font-bold transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                    strategyCompareMode === mode
+                      ? "border-brand-500 bg-brand-500 text-white"
+                      : "border-brand-200 bg-brand-50 text-brand-700 hover:bg-brand-100"
+                  }`}
+                >
+                  {strategyCompareLoading && strategyCompareMode === mode ? "조회 중..." : label}
+                </button>
+              ))}
             </div>
 
+            {/* 전략 비교 결과 */}
             {strategyCompareMode && (
-              <div className="neo-subpanel mt-3 rounded-2xl p-3">
+              <div className="ios-subcard mt-3 p-3">
                 <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                  <p className="text-sm font-bold text-slate-800">{strategyCompareTitle}</p>
-                  <p className="text-xs text-slate-500">
-                    투자금액 기준:{" "}
-                    <span className="font-semibold text-slate-700">
+                  <p className="text-sm font-bold text-slate-700">{strategyCompareTitle}</p>
+                  <p className="text-[11px] text-slate-400">
+                    기준:{" "}
+                    <span className="font-semibold text-slate-600">
                       {formatCurrencyKRW(strategyComparePrincipal ?? investedPrincipal)}
                     </span>
                     {strategyCompareUpdatedAt && (
-                      <span className="ml-2">
-                        · 갱신일 <span className="font-semibold text-slate-700">{strategyCompareUpdatedAt}</span>
-                      </span>
+                      <span className="ml-1.5">· {strategyCompareUpdatedAt}</span>
                     )}
                   </p>
                 </div>
-
                 {strategyCompareError ? (
-                  <p className="mt-2 text-xs font-semibold text-rose-700">{strategyCompareError}</p>
+                  <p className="mt-2 text-xs font-semibold text-rose-600">{strategyCompareError}</p>
                 ) : (
-                  <div className="neo-subpanel mt-2 max-h-[360px] overflow-auto rounded-xl">
-                    <table className="neo-table min-w-[680px] w-full text-xs">
-                      <thead className="text-slate-600">
+                  <div className="mt-2 max-h-[360px] overflow-auto rounded-xl border border-slate-100">
+                    <table className="ios-table min-w-[680px]">
+                      <thead>
                         <tr>
-                          <th className="sticky-col sticky left-0 top-0 z-30 w-[84px] min-w-[84px] border-r border-slate-200 bg-slate-50 px-2 py-2 text-left font-semibold">구분</th>
-                          <th className="sticky top-0 z-20 bg-slate-50 px-2 py-2 text-right font-semibold">CAGR</th>
-                          <th className="sticky top-0 z-20 bg-slate-50 px-2 py-2 text-right font-semibold">MDD</th>
-                          <th className="sticky top-0 z-20 bg-slate-50 px-2 py-2 text-right font-semibold">Sharpe</th>
-                          <th className="sticky top-0 z-20 bg-slate-50 px-2 py-2 text-right font-semibold">배당률</th>
-                          <th className="sticky top-0 z-20 bg-slate-50 px-2 py-2 text-right font-semibold">월배당금</th>
-                          <th className="sticky top-0 z-20 bg-slate-50 px-2 py-2 text-left font-semibold">KPI 기간</th>
+                          <th className="sticky left-0 top-0 z-30 w-[84px] min-w-[84px] border-r border-slate-200 bg-slate-50 text-left">구분</th>
+                          <th className="sticky top-0 z-20 text-right">CAGR</th>
+                          <th className="sticky top-0 z-20 text-right">MDD</th>
+                          <th className="sticky top-0 z-20 text-right">Sharpe</th>
+                          <th className="sticky top-0 z-20 text-right">배당률</th>
+                          <th className="sticky top-0 z-20 text-right">월배당금</th>
+                          <th className="sticky top-0 z-20 text-left">KPI 기간</th>
                         </tr>
                       </thead>
                       <tbody>
                         {strategyCompareRows.map((row) => (
-                          <tr key={row.id} className="border-t border-slate-100">
-                            <td className="sticky-col sticky left-0 z-10 w-[84px] min-w-[84px] border-r border-slate-100 bg-white px-2 py-2 font-semibold text-slate-800">
+                          <tr key={row.id}>
+                            <td className="sticky left-0 z-10 w-[84px] min-w-[84px] border-r border-slate-100 bg-white px-3 py-2.5 font-semibold text-slate-800">
                               {row.label}
                             </td>
-                            <td className="px-2 py-2 text-right text-slate-700">
+                            <td className="px-3 py-2.5 text-right text-slate-700">
                               {row.kpi ? formatPercent(row.kpi.cagr) : "-"}
                             </td>
-                            <td className="px-2 py-2 text-right text-slate-700">
+                            <td className="px-3 py-2.5 text-right text-slate-700">
                               {row.kpi ? formatPercent(row.kpi.mdd) : "-"}
                             </td>
-                            <td className="px-2 py-2 text-right text-slate-700">
+                            <td className="px-3 py-2.5 text-right text-slate-700">
                               {row.kpi ? row.kpi.sharpe.toFixed(2) : "-"}
                             </td>
-                            <td className="px-2 py-2 text-right text-slate-700">
+                            <td className="px-3 py-2.5 text-right text-slate-700">
                               {row.kpi ? formatPercent(row.kpi.annualDividendYield) : "-"}
                             </td>
-                            <td className="px-2 py-2 text-right font-semibold text-brand-700">
+                            <td className="px-3 py-2.5 text-right font-semibold text-brand-700">
                               {row.monthlyDividend != null ? formatCurrencyKRW(row.monthlyDividend) : "-"}
                             </td>
-                            <td className="px-2 py-2 text-slate-600">
+                            <td className="px-3 py-2.5 text-slate-600">
                               {row.periodStart && row.periodEnd
                                 ? `${formatYmdFromDashDate(row.periodStart)}~${formatYmdFromDashDate(row.periodEnd)}`
                                 : "-"}
@@ -1569,17 +1542,19 @@ function App() {
           </section>
         )}
 
-        <section className="neo-panel rounded-3xl p-4 sm:p-5">
+        {/* ── 복리 계산기 ── */}
+        <section className="ios-card p-4 sm:p-5">
           <h2 className="text-sm font-bold text-slate-700 sm:text-base">복리 계산기</h2>
-          <p className="mt-1 text-xs text-slate-500">
+          <p className="mt-1 text-xs text-slate-400">
             원금·추가원금·목표수익률·기간을 입력하면 복리 기준 총 자산과 수익금을 계산합니다.
           </p>
 
-          <div className="mt-3 space-y-3">
+          <div className="mt-3 space-y-4">
+            {/* 최초 투자원금 */}
             <div>
-              <p className="mb-1 text-xs font-semibold text-slate-500">최초 투자원금</p>
+              <p className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">최초 투자원금</p>
               <input
-                className="neo-input w-full rounded-xl px-3 py-2.5 text-right text-base font-bold text-slate-900 outline-none ring-brand-300 transition focus:ring"
+                className="ios-input text-right text-base font-bold"
                 inputMode="decimal"
                 value={
                   compoundInitialFocused
@@ -1612,7 +1587,7 @@ function App() {
                         sanitizeNonNegativeNumber(prev + quick.amount, 0)
                       )
                     }
-                    className="neo-btn rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs font-semibold text-slate-700 transition-transform duration-150 active:translate-y-[1px] active:scale-[0.98] hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700 sm:text-sm"
+                    className="btn-ghost py-2 text-xs"
                   >
                     +{quick.label}
                   </button>
@@ -1620,10 +1595,11 @@ function App() {
               </div>
             </div>
 
+            {/* 매년 추가원금 */}
             <div>
-              <p className="mb-1 text-xs font-semibold text-slate-500">매년 추가원금</p>
+              <p className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">매년 추가원금</p>
               <input
-                className="neo-input w-full rounded-xl px-3 py-2.5 text-right text-base font-bold text-slate-900 outline-none ring-brand-300 transition focus:ring"
+                className="ios-input text-right text-base font-bold"
                 inputMode="decimal"
                 value={
                   compoundAnnualFocused
@@ -1656,7 +1632,7 @@ function App() {
                         sanitizeNonNegativeNumber(prev + quick.amount, 0)
                       )
                     }
-                    className="neo-btn rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs font-semibold text-slate-700 transition-transform duration-150 active:translate-y-[1px] active:scale-[0.98] hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700 sm:text-sm"
+                    className="btn-ghost py-2 text-xs"
                   >
                     +{quick.label}
                   </button>
@@ -1664,11 +1640,12 @@ function App() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
+            {/* 수익률 + 기간 */}
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <p className="mb-1 text-xs font-semibold text-slate-500">목표 수익률 %</p>
+                <p className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">목표 수익률 %</p>
                 <input
-                  className="neo-input w-full rounded-xl px-3 py-2.5 text-right text-base font-bold text-slate-900 outline-none ring-brand-300 transition focus:ring"
+                  className="ios-input text-right text-base font-bold"
                   inputMode="decimal"
                   value={compoundTargetReturn}
                   onChange={(event) =>
@@ -1682,9 +1659,9 @@ function App() {
                 />
               </div>
               <div>
-                <p className="mb-1 text-xs font-semibold text-slate-500">투자 기간 (년)</p>
+                <p className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">투자 기간 (년)</p>
                 <input
-                  className="neo-input w-full rounded-xl px-3 py-2.5 text-right text-base font-bold text-slate-900 outline-none ring-brand-300 transition focus:ring"
+                  className="ios-input text-right text-base font-bold"
                   inputMode="numeric"
                   value={compoundYears}
                   onChange={(event) =>
@@ -1702,59 +1679,67 @@ function App() {
             </div>
           </div>
 
-          <div className="neo-subpanel mt-3 rounded-2xl p-3">
-            <p className="text-sm font-bold text-slate-800">총 자산 결과</p>
-            <div className="mt-2 grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
-              <p className="text-slate-600">
-                누적 원금 <span className="font-semibold text-slate-900">{formatCurrencyKRW(compoundFinal.principalSum)}</span>
-              </p>
-              <p className="text-slate-600">
-                총 자산 <span className="font-semibold text-slate-900">{formatCurrencyKRW(compoundFinal.totalAsset)}</span>
-              </p>
-              <p className="text-slate-600">
-                수익금 <span className={`font-bold ${compoundFinal.profit >= 0 ? "text-brand-700" : "text-rose-700"}`}>{formatSignedCurrencyKRW(compoundFinal.profit)}</span>
-              </p>
-              <p className="text-slate-600">
-                누적 수익률 <span className="font-semibold text-slate-900">{formatPercent(compoundTotalReturnPercent)}</span>
-              </p>
+          {/* 총 자산 결과 */}
+          <div className="ios-subcard mt-4 p-3">
+            <p className="text-sm font-bold text-slate-700">총 자산 결과</p>
+            <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <div className="metric-card">
+                <p className="metric-label">누적 원금</p>
+                <p className="metric-value text-base text-slate-700">{formatCurrencyKRW(compoundFinal.principalSum)}</p>
+              </div>
+              <div className="metric-card">
+                <p className="metric-label">총 자산</p>
+                <p className="metric-value text-base text-brand-600">{formatCurrencyKRW(compoundFinal.totalAsset)}</p>
+              </div>
+              <div className="metric-card">
+                <p className="metric-label">수익금</p>
+                <p className={`metric-value text-base ${compoundFinal.profit >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+                  {formatSignedCurrencyKRW(compoundFinal.profit)}
+                </p>
+              </div>
+              <div className="metric-card">
+                <p className="metric-label">누적 수익률</p>
+                <p className="metric-value text-base text-slate-700">{formatPercent(compoundTotalReturnPercent)}</p>
+              </div>
             </div>
           </div>
 
-          <div className="neo-subpanel mt-3 rounded-2xl p-3">
-            <p className="text-sm font-bold text-slate-800">수익률 그래프 및 최종 평가</p>
-            <div className="mt-2 overflow-hidden rounded-xl border border-brand-200/70 bg-white/75 p-2">
+          {/* 수익률 그래프 */}
+          <div className="ios-subcard mt-3 p-3">
+            <p className="text-sm font-bold text-slate-700">수익률 그래프</p>
+            <div className="mt-2 overflow-hidden rounded-xl border border-brand-100 bg-gradient-to-br from-brand-50 to-white p-2">
               <svg viewBox={`0 0 ${compoundChart.width} ${compoundChart.height}`} className="h-40 w-full">
-                <polygon points={compoundChart.area} fill="rgba(255, 255, 255, 0.1)" />
+                <polygon points={compoundChart.area} fill="rgba(99,102,241,0.06)" />
                 <polyline
                   points={compoundChart.principalLine}
                   fill="none"
-                  stroke="rgba(101, 123, 156, 0.65)"
-                  strokeWidth="1.6"
+                  stroke="rgba(148,163,184,0.7)"
+                  strokeWidth="1.5"
                   strokeDasharray="4 4"
                 />
                 <polyline
                   points={compoundChart.assetLine}
                   fill="none"
-                  stroke="rgba(255, 255, 255, 0.88)"
-                  strokeWidth="2.4"
+                  stroke="#6366F1"
+                  strokeWidth="2.5"
                 />
               </svg>
-              <div className="mt-1 flex items-center justify-between text-[10px] text-slate-500">
+              <div className="mt-1 flex items-center justify-between text-[10px] text-slate-400">
                 {compoundChart.labels.map((label) => (
                   <span key={label.key}>{label.label}</span>
                 ))}
               </div>
-              <div className="mt-1 flex items-center justify-between text-[10px] text-slate-600">
+              <div className="mt-0.5 flex items-center justify-between text-[10px] text-slate-400">
                 <span>상단 {compoundChart.yTop}</span>
                 <span>하단 {compoundChart.yBottom}</span>
               </div>
-              <div className="mt-1 flex items-center gap-3 text-[10px] text-slate-500">
-                <span className="inline-flex items-center gap-1">
-                  <span className="h-[2px] w-4 bg-brand-300" />
+              <div className="mt-1.5 flex items-center gap-4 text-[10px] text-slate-500">
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="inline-block h-0.5 w-4 rounded bg-brand-500" />
                   총 자산
                 </span>
-                <span className="inline-flex items-center gap-1">
-                  <span className="h-[2px] w-4 border-t border-dashed border-slate-300" />
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="inline-block h-0.5 w-4 rounded border-t border-dashed border-slate-400" />
                   누적 원금
                 </span>
               </div>
@@ -1763,7 +1748,7 @@ function App() {
           </div>
         </section>
 
-        <p className="pb-1 text-center text-[10px] tracking-[0.08em] text-slate-500">
+        <p className="pb-2 text-center text-[10px] tracking-[0.08em] text-slate-400">
           {PRODUCED_BY_LABEL}
         </p>
       </div>
