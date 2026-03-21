@@ -1,0 +1,27 @@
+[
+  {
+    "id": "my_portfolio",
+    "name": "테스트 포트",
+    "principalLabel": "투자금",
+    "principal": 10000000,
+    "items": [
+      {
+        "id": "x1",
+        "category": "안전자산",
+        "subCategory": "채권",
+        "dividendYield": 2.1,
+        "name": "테스트채권",
+        "code": "123456",
+        "price": 10000,
+        "weight": 100
+      }
+    ],
+    "kpi": {
+      "cagr": 5,
+      "mdd": 10,
+      "sharpe": 0.5,
+      "annualDividendYield": 2
+    },
+    "isCustom": true
+  }
+]

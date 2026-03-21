@@ -1,0 +1,15 @@
+[
+  {
+    "id": "empty_items",
+    "name": "빈 아이템",
+    "principalLabel": "투자금",
+    "principal": 10000,
+    "items": [],
+    "kpi": {
+      "cagr": 1,
+      "mdd": 1,
+      "sharpe": 1,
+      "annualDividendYield": 1
+    }
+  }
+]

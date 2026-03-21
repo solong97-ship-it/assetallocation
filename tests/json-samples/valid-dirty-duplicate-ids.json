@@ -1,0 +1,58 @@
+[
+  {
+    "id": "dup id",
+    "name": "",
+    "principalLabel": "원금",
+    "principal": -100,
+    "items": [
+      {
+        "id": "item id",
+        "category": "UNKNOWN",
+        "subCategory": "",
+        "dividendYield": -1,
+        "name": "",
+        "code": "12-34 !",
+        "price": -500,
+        "weight": "abc"
+      }
+    ],
+    "kpi": {
+      "cagr": "x",
+      "mdd": null,
+      "sharpe": -1,
+      "annualDividendYield": "1.5"
+    }
+  },
+  {
+    "id": "dup id",
+    "name": "두번째",
+    "principalLabel": "투자금",
+    "principal": "20000000",
+    "items": [
+      {
+        "category": "안전자산",
+        "subCategory": "현금",
+        "dividendYield": 0.4,
+        "name": "KOFR",
+        "code": "449170",
+        "price": 110000,
+        "weight": 50
+      },
+      {
+        "category": "위험자산",
+        "subCategory": "주식",
+        "dividendYield": 1.2,
+        "name": "S&P",
+        "code": "379800",
+        "price": 22000,
+        "weight": 50
+      }
+    ],
+    "kpi": {
+      "cagr": 6,
+      "mdd": 17,
+      "sharpe": 0.3,
+      "annualDividendYield": 1.1
+    }
+  }
+]
