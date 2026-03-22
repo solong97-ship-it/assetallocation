@@ -553,6 +553,7 @@ function App() {
   const [optimalResults, setOptimalResults] = useState<OptimalResult[] | null>(null);
   const [optimalLoading, setOptimalLoading] = useState(false);
   const [optimalError, setOptimalError] = useState<string | null>(null);
+  const [showManual, setShowManual] = useState(false);
 
   const requiresMode = selection.strategy === "A" || selection.strategy === "B";
   const canShowResult = selection.principal > 0 && (!requiresMode || Boolean(selection.mode));
@@ -568,22 +569,56 @@ function App() {
   useEffect(() => {
     if (startupWarmupStartedRef.current) return;
     startupWarmupStartedRef.current = true;
-    const codes = uniqueCodesFromItems(initialPortfolios.flatMap((portfolio) => portfolio.items));
-    const cachedQuotes = getStoredLatestQuotesByCodes(codes);
-    const codesToFetch = codes.filter(
-      (code) => !isStoredLatestQuoteFresh(cachedQuotes[code], STARTUP_PRICE_MAX_AGE_MS)
-    );
-    if (codesToFetch.length === 0) return;
 
+    const codes = uniqueCodesFromItems(initialPortfolios.flatMap((portfolio) => portfolio.items));
     let cancelled = false;
-    void fetchPricesByCodes(codesToFetch)
-      .then(({ prices, sourceByCode }) => {
-        if (cancelled) return;
-        upsertStoredLatestQuotes(prices, sourceByCode);
-      })
-      .catch(() => {
-        // background warm-up failure is ignored and handled on explicit refresh
-      });
+
+    void (async () => {
+      try {
+        // 1) 최신 시세 조회
+        const cachedQuotes = getStoredLatestQuotesByCodes(codes);
+        const priceCodesToFetch = codes.filter(
+          (code) => !isStoredLatestQuoteFresh(cachedQuotes[code], STARTUP_PRICE_MAX_AGE_MS)
+        );
+        if (priceCodesToFetch.length > 0) {
+          const { prices, sourceByCode } = await fetchPricesByCodes(priceCodesToFetch);
+          if (cancelled) return;
+          upsertStoredLatestQuotes(prices, sourceByCode);
+        }
+
+        // 2) 1년 히스토리 조회 (KPI 계산용)
+        const cachedHistories = getStoredHistoriesByCodes(codes);
+        const historyCodesToFetch = codes.filter(
+          (code) => !isStoredHistoryFresh(cachedHistories[code], HISTORY_STALE_DAYS)
+        );
+        if (historyCodesToFetch.length > 0 && !cancelled) {
+          const { historyByCode } = await fetchOneYearHistoriesByCodes(
+            historyCodesToFetch,
+            undefined,
+            {
+              existingHistoryByCode: cachedHistories,
+              preferIncremental: true,
+              recentStaleDays: HISTORY_STALE_DAYS,
+            }
+          );
+          if (cancelled) return;
+          upsertStoredHistories(historyByCode);
+        }
+
+        // 3) 배당수익률 조회
+        const cachedDividendYields = getStoredDividendYieldsByCodes(codes);
+        const dividendCodesToFetch = codes.filter(
+          (code) => !isStoredDividendYieldFresh(cachedDividendYields[code], DIVIDEND_STALE_DAYS)
+        );
+        if (dividendCodesToFetch.length > 0 && !cancelled) {
+          const { dividendYieldByCode, sourceByCode } = await fetchDividendYieldsByCodes(dividendCodesToFetch);
+          if (cancelled) return;
+          upsertStoredDividendYields(dividendYieldByCode, sourceByCode);
+        }
+      } catch {
+        // background warm-up failure is silently ignored
+      }
+    })();
 
     return () => {
       cancelled = true;
@@ -1294,11 +1329,349 @@ function App() {
 
         {/* ── Header (compact) ── */}
         <header className="app-header px-4 py-4">
-          <h1 className="text-[15px] font-black tracking-tight text-white">절세계좌 자산배분 투자</h1>
-          <p className="mt-1 text-[11px] leading-relaxed text-white/70">
-            투자금·전략(A~E) 선택 → 최신 시세 반영 · KPI · 월배당 · 검산
-          </p>
+          <div className="flex items-start justify-between">
+            <div>
+              <h1 className="text-[15px] font-black tracking-tight text-white">절세계좌 자산배분 투자</h1>
+              <p className="mt-1 text-[11px] leading-relaxed text-white/70">
+                투자금·전략(A~E) 선택 → 최신 시세 반영 · KPI · 월배당 · 검산
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowManual(true)}
+              className="flex-shrink-0 rounded-lg bg-white/20 px-2.5 py-1.5 text-[11px] font-bold text-white backdrop-blur-sm transition-all hover:bg-white/30 active:scale-95"
+            >
+              사용설명서
+            </button>
+          </div>
         </header>
+
+        {/* ── 사용설명서 모달 ── */}
+        {showManual && (
+          <div
+            className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 p-4 backdrop-blur-sm"
+            onClick={(e) => { if (e.target === e.currentTarget) setShowManual(false); }}
+          >
+            <div className="relative my-6 w-full max-w-[460px] rounded-2xl bg-white shadow-2xl">
+              {/* 모달 헤더 */}
+              <div className="sticky top-0 z-10 flex items-center justify-between rounded-t-2xl border-b border-slate-100 bg-white px-5 py-4">
+                <h2 className="text-[15px] font-black text-slate-800">사용설명서</h2>
+                <button
+                  type="button"
+                  onClick={() => setShowManual(false)}
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-[16px] text-slate-400 transition hover:bg-slate-200 hover:text-slate-600"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* 모달 본문 */}
+              <div className="space-y-5 px-5 py-5 text-[12px] leading-[1.8] text-slate-600">
+
+                {/* 0. 이 앱은 무엇인가요? */}
+                <section>
+                  <h3 className="mb-1.5 text-[13px] font-extrabold text-indigo-600">이 앱은 무엇인가요?</h3>
+                  <p>
+                    <b>절세계좌 자산배분 투자</b>는 연금저축, IRP 같은 절세 계좌에서
+                    여러 ETF에 돈을 나눠 투자하는 것을 도와주는 앱이에요.
+                  </p>
+                  <p className="mt-1">
+                    쉽게 말해, <b>"달걀을 한 바구니에 담지 말라"</b>는 투자 원칙을 실천하도록
+                    도와주는 계산기예요. 주식, 금, 채권, 현금 등 여러 자산에 골고루 나누면
+                    하나가 떨어져도 전체 손해가 줄어들어요.
+                  </p>
+                </section>
+
+                {/* 1. 용어 설명 */}
+                <section>
+                  <h3 className="mb-1.5 text-[13px] font-extrabold text-indigo-600">알아두면 좋은 용어</h3>
+                  <div className="space-y-2.5">
+                    <div className="rounded-xl bg-emerald-50 p-3">
+                      <p className="font-bold text-emerald-700">CAGR (연평균 복리 수익률)</p>
+                      <p className="mt-0.5 text-[11px] text-emerald-600">
+                        "1년에 평균 몇 % 벌었을까?"를 알려주는 숫자예요.
+                        예를 들어 CAGR 8%이면, 100만원이 1년 뒤 약 108만원이 된다는 뜻이에요.
+                        숫자가 클수록 수익이 좋은 거예요!
+                      </p>
+                    </div>
+                    <div className="rounded-xl bg-rose-50 p-3">
+                      <p className="font-bold text-rose-700">MDD (최대 낙폭)</p>
+                      <p className="mt-0.5 text-[11px] text-rose-600">
+                        "가장 많이 떨어진 적이 있을 때, 얼마나 빠졌나?"를 보여줘요.
+                        예를 들어 MDD 15%이면, 최고점에서 15% 떨어진 적이 있다는 뜻이에요.
+                        숫자가 작을수록 안정적인 거예요. 롤러코스터를 생각하면 돼요 — MDD가 작으면 조용한 기차, 크면 무서운 롤러코스터!
+                      </p>
+                    </div>
+                    <div className="rounded-xl bg-indigo-50 p-3">
+                      <p className="font-bold text-indigo-700">Sharpe (샤프 지수)</p>
+                      <p className="mt-0.5 text-[11px] text-indigo-600">
+                        "위험 대비 얼마나 잘 벌었나?"를 점수로 매긴 거예요.
+                        같은 수익이라도 출렁임이 적으면 샤프가 높아요.
+                        1.0 이상이면 아주 좋고, 0.5 이상이면 괜찮은 편이에요.
+                        가성비 좋은 투자일수록 샤프가 높다고 생각하면 돼요!
+                      </p>
+                    </div>
+                    <div className="rounded-xl bg-purple-50 p-3">
+                      <p className="font-bold text-purple-700">배당수익률</p>
+                      <p className="mt-0.5 text-[11px] text-purple-600">
+                        "가만히 가지고 있기만 해도 매년 받는 용돈(배당금)이 투자금의 몇 %인가?"예요.
+                        예를 들어 배당률 3%이면, 1,000만원 투자 시 1년에 약 30만원을 배당으로 받아요.
+                        월배당은 이 금액을 12로 나눈 거예요.
+                      </p>
+                    </div>
+                    <div className="rounded-xl bg-amber-50 p-3">
+                      <p className="font-bold text-amber-700">ETF (상장지수펀드)</p>
+                      <p className="mt-0.5 text-[11px] text-amber-700">
+                        여러 주식이나 채권을 하나로 묶은 상품이에요. 주식처럼 사고팔 수 있어요.
+                        예를 들어 "KODEX 미국S&P500"은 미국의 큰 회사 500개에 한꺼번에 투자하는 ETF예요.
+                      </p>
+                    </div>
+                    <div className="rounded-xl bg-sky-50 p-3">
+                      <p className="font-bold text-sky-700">위험자산 vs 안전자산</p>
+                      <p className="mt-0.5 text-[11px] text-sky-600">
+                        <b>위험자산</b>: 주식, 금 등 가격이 크게 오르내릴 수 있는 자산. 수익 기대가 높지만 손실 가능성도 커요.<br/>
+                        <b>안전자산</b>: 채권, KOFR(단기금리) 등 가격 변동이 적은 자산. 수익은 적지만 안정적이에요.
+                        두 가지를 섞으면 수익도 챙기면서 위험도 줄일 수 있어요!
+                      </p>
+                    </div>
+                  </div>
+                </section>
+
+                {/* 2. 기본 사용법 */}
+                <section>
+                  <h3 className="mb-1.5 text-[13px] font-extrabold text-indigo-600">기본 사용법 (3단계)</h3>
+                  <div className="space-y-2">
+                    <div className="flex gap-2.5">
+                      <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-indigo-100 text-[11px] font-black text-indigo-600">1</span>
+                      <div>
+                        <p className="font-bold text-slate-700">투자금액 입력</p>
+                        <p className="text-[11px]">실제로 투자할 금액을 입력하세요. 백만/천만/억 버튼으로 빠르게 추가할 수 있어요.</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2.5">
+                      <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-indigo-100 text-[11px] font-black text-indigo-600">2</span>
+                      <div>
+                        <p className="font-bold text-slate-700">전략 선택 (A~E)</p>
+                        <p className="text-[11px]">
+                          <b>A형</b> 연금저축 &nbsp;/&nbsp; <b>B형</b> IRP &nbsp;/&nbsp;
+                          <b>C형</b> 성장 &nbsp;/&nbsp; <b>D형</b> 은퇴 &nbsp;/&nbsp; <b>E형</b> 배당<br/>
+                          A형·B형은 안정형/중립형/성장형 중 하나를 추가로 선택해요.
+                          안정형은 채권 비중이 높아 덜 출렁이고, 성장형은 주식 비중이 높아 수익 기대가 커요.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2.5">
+                      <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-indigo-100 text-[11px] font-black text-indigo-600">3</span>
+                      <div>
+                        <p className="font-bold text-slate-700">결과 확인</p>
+                        <p className="text-[11px]">
+                          "시세 조회" 버튼을 누르면 최신 가격으로 각 ETF를 몇 주씩 사야 하는지,
+                          예상 월배당은 얼마인지, 포트폴리오 성과(KPI)는 어떤지 자동으로 계산돼요.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                {/* 3. 화면별 기능 설명 */}
+                <section>
+                  <h3 className="mb-1.5 text-[13px] font-extrabold text-indigo-600">화면별 기능 안내</h3>
+                  <div className="space-y-3">
+
+                    <div className="rounded-xl border border-slate-100 p-3">
+                      <p className="font-bold text-slate-700">시세 조회 상태</p>
+                      <p className="text-[11px]">
+                        네이버 금융에서 ETF의 최신 가격과 과거 1년 가격을 가져와요.
+                        노란 점이 깜빡이면 조회 중, 초록 점이면 완료된 거예요.
+                        한번 가져온 데이터는 저장되어 다시 열 때 빠르게 표시돼요.
+                      </p>
+                    </div>
+
+                    <div className="rounded-xl border border-slate-100 p-3">
+                      <p className="font-bold text-slate-700">월배당금 상세</p>
+                      <p className="text-[11px]">
+                        각 ETF가 1년간 주는 배당금을 12로 나눠서 한 달에 받을 예상 배당금을 보여줘요.
+                        모든 ETF의 월배당을 합하면 전체 월배당 총액이 됩니다.
+                      </p>
+                    </div>
+
+                    <div className="rounded-xl border border-slate-100 p-3">
+                      <p className="font-bold text-slate-700">KPI 비교</p>
+                      <p className="text-[11px]">
+                        1년/6개월/3개월/1개월 기간별로 포트폴리오의 성과를 비교할 수 있어요.
+                        CAGR(수익률), MDD(최대낙폭), Sharpe(위험대비수익), 배당률 4가지를 한눈에 확인하세요.
+                        기간 탭을 눌러 다른 기간의 성과도 볼 수 있어요.
+                      </p>
+                    </div>
+
+                    <div className="rounded-xl border border-slate-100 p-3">
+                      <p className="font-bold text-slate-700">종목별 상세</p>
+                      <p className="text-[11px]">
+                        각 ETF의 현재가, 투자금액, 매수 주수, 배당률, 기간별 수익률을 보여줘요.
+                        종목 이름을 누르면 상세 정보가 펼쳐져요.
+                        "검산 금액"이란 실제로 주식을 살 때의 금액(주수 x 현재가)이에요.
+                      </p>
+                    </div>
+
+                    <div className="rounded-xl border border-slate-100 p-3">
+                      <p className="font-bold text-slate-700">전략 비교</p>
+                      <p className="text-[11px]">
+                        여러 전략의 성과를 표로 비교할 수 있어요.
+                        "A~E 비교"는 5개 전략 전체를, "A형 모드"는 A형의 안정/중립/성장을,
+                        "S&P500 대비"는 미국 주식과 비교해 줘요.
+                        "데이터 조회" 버튼을 누르면 비교 표가 나타납니다.
+                      </p>
+                    </div>
+
+                    <div className="rounded-xl border border-slate-100 p-3">
+                      <p className="font-bold text-slate-700">복리 계산기</p>
+                      <p className="text-[11px]">
+                        "지금 투자한 돈이 10년, 20년 뒤에 얼마가 될까?"를 계산해 줘요.
+                        최초 투자금과 매년 추가 투자금을 넣고, CAGR을 입력하면
+                        연도별 자산 증가를 그래프와 표로 보여줘요.
+                        복리란 "이자에 또 이자가 붙는 것"으로, 시간이 지날수록 자산이 눈덩이처럼 불어나요!
+                      </p>
+                    </div>
+
+                    <div className="rounded-xl border border-slate-100 p-3">
+                      <p className="font-bold text-slate-700">B형 1년 수익률 비교</p>
+                      <p className="text-[11px]">
+                        B형(IRP) 포트폴리오의 안정형/중립형/성장형이 지난 1년간 어떻게 움직였는지
+                        그래프로 보여줘요. 파란색이 안정형, 주황색이 중립형, 빨간색이 성장형이에요.
+                        100%를 기준으로 위로 올라가면 수익, 아래로 내려가면 손실이에요.
+                        퇴직금(DC) 운용 시 어떤 모드를 선택할지 판단하는 데 참고하세요.
+                      </p>
+                    </div>
+
+                    <div className="rounded-xl border border-slate-100 p-3">
+                      <p className="font-bold text-slate-700">최적 포트폴리오 탐색</p>
+                      <p className="text-[11px]">
+                        15개 ETF의 과거 1년 데이터를 분석하여 가장 좋은 조합을 자동으로 찾아줘요.
+                        컴퓨터가 수만 가지 조합을 시험해서 가장 높은 수익 + 가장 낮은 위험의 조합을 골라줘요.
+                      </p>
+                      <p className="mt-1 text-[11px]">
+                        적용되는 규칙:
+                      </p>
+                      <ul className="mt-0.5 list-inside list-disc space-y-0.5 text-[11px]">
+                        <li>모든 종목은 19% 이하 (한 종목에 너무 몰리지 않도록)</li>
+                        <li>개별 주식 종목은 10% 이하</li>
+                        <li>KOFR(현금성) 5% 이상 유지</li>
+                        <li>안전자산(채권+현금) 30% 이상 (안정적인 비중 확보)</li>
+                        <li>포트폴리오 전체 배당수익률 3~4% 범위</li>
+                        <li>주식·금·채권·KOFR 각각 1개 이상 포함</li>
+                      </ul>
+                      <p className="mt-1 text-[10px] text-slate-400">
+                        * 과거 데이터를 기반으로 한 백테스트 결과이며, 미래 수익을 보장하지 않습니다.
+                      </p>
+                    </div>
+                  </div>
+                </section>
+
+                {/* 4. 투자 전략 요약 */}
+                <section>
+                  <h3 className="mb-1.5 text-[13px] font-extrabold text-indigo-600">5가지 전략 한눈에 보기</h3>
+                  <div className="overflow-hidden rounded-xl border border-slate-200">
+                    <table className="w-full text-[10px]">
+                      <thead>
+                        <tr className="bg-slate-50">
+                          <th className="px-2.5 py-2 text-left font-bold text-slate-500">전략</th>
+                          <th className="px-2.5 py-2 text-left font-bold text-slate-500">계좌</th>
+                          <th className="px-2.5 py-2 text-left font-bold text-slate-500">특징</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        <tr><td className="px-2.5 py-1.5 font-bold text-indigo-600">A형</td><td className="px-2.5 py-1.5">연금저축</td><td className="px-2.5 py-1.5">주식/채권 균형, 모드 선택 가능</td></tr>
+                        <tr><td className="px-2.5 py-1.5 font-bold text-indigo-600">B형</td><td className="px-2.5 py-1.5">IRP</td><td className="px-2.5 py-1.5">A형 대비 채권·혼합 비중 조정, 모드 선택 가능</td></tr>
+                        <tr><td className="px-2.5 py-1.5 font-bold text-indigo-600">C형</td><td className="px-2.5 py-1.5">성장</td><td className="px-2.5 py-1.5">글로벌 주식 + 금 분산</td></tr>
+                        <tr><td className="px-2.5 py-1.5 font-bold text-indigo-600">D형</td><td className="px-2.5 py-1.5">은퇴</td><td className="px-2.5 py-1.5">커버드콜·혼합 → 현금흐름 강화</td></tr>
+                        <tr><td className="px-2.5 py-1.5 font-bold text-indigo-600">E형</td><td className="px-2.5 py-1.5">배당</td><td className="px-2.5 py-1.5">배당/리츠 중심 인컴 전략</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <p className="mt-1.5 text-[10px] text-slate-400">
+                    A형·B형은 안정형/중립형/성장형 세 가지 모드를 제공합니다.
+                    안정형일수록 채권이 많고 변동이 적어요.
+                    성장형일수록 주식이 많고 수익 기대가 높아요.
+                  </p>
+                </section>
+
+                {/* 5. 자주 묻는 질문 */}
+                <section>
+                  <h3 className="mb-1.5 text-[13px] font-extrabold text-indigo-600">자주 묻는 질문</h3>
+                  <div className="space-y-2.5">
+                    <div>
+                      <p className="font-bold text-slate-700">Q. 시세 조회가 안 돼요!</p>
+                      <p className="text-[11px]">네이버 금융 서버 상태에 따라 일시적으로 안 될 수 있어요. 잠시 후 다시 시도해 보세요.</p>
+                    </div>
+                    <div>
+                      <p className="font-bold text-slate-700">Q. 투자금을 바꾸면 어떻게 되나요?</p>
+                      <p className="text-[11px]">투자금을 바꾸면 각 ETF에 투자할 금액과 매수 주수가 자동으로 다시 계산돼요.</p>
+                    </div>
+                    <div>
+                      <p className="font-bold text-slate-700">Q. 어떤 전략을 골라야 하나요?</p>
+                      <p className="text-[11px]">
+                        정답은 없어요! 젊고 장기 투자할 수 있다면 성장형(C형), 안정적 수입이 중요하면 배당형(D·E형),
+                        균형을 원하면 A·B형 중립형이 좋은 출발점이에요. "전략 비교" 기능으로 직접 비교해 보세요.
+                      </p>
+                    </div>
+                    <div>
+                      <p className="font-bold text-slate-700">Q. 이 앱의 결과를 그대로 따라 투자해도 되나요?</p>
+                      <p className="text-[11px]">
+                        절대 그대로 따라 하지 마세요! 이 앱은 참고용 도구일 뿐이에요.
+                        반드시 본인의 상황과 판단에 따라 투자를 결정하세요.
+                        아래 "투자 책임 안내"를 꼭 읽어 주세요.
+                      </p>
+                    </div>
+                  </div>
+                </section>
+
+                {/* 6. 투자 책임 안내 */}
+                <section>
+                  <h3 className="mb-1.5 text-[13px] font-extrabold text-rose-600">투자 책임 안내 (반드시 읽어주세요)</h3>
+                  <div className="rounded-xl border-2 border-rose-200 bg-rose-50 p-4 text-[11px] leading-[1.9] text-rose-800">
+                    <p className="font-extrabold text-[12px]">
+                      본 앱에서 제공하는 모든 포트폴리오(A~E형) 및 최적 포트폴리오 탐색 결과는
+                      투자 참고 자료일 뿐이며, 투자 권유가 아닙니다.
+                    </p>
+                    <p className="mt-2">
+                      <b>투자에 대한 최종 결정과 그에 따른 모든 책임은
+                      투자자 본인에게 있습니다.</b>
+                    </p>
+                    <ul className="mt-2 list-inside list-disc space-y-1">
+                      <li>본 앱의 정보를 근거로 한 투자 손실에 대해 앱 제작자는 어떠한 책임도 지지 않습니다.</li>
+                      <li>과거 수익률은 미래 수익을 보장하지 않습니다.</li>
+                      <li>
+                        <b>특히 "최적 포트폴리오 탐색"은 과거 1년 데이터만을 기반으로 한
+                        백테스트 결과</b>이므로, 향후 시장 상황에 따라 결과가 크게 달라질 수 있습니다.
+                        최적 포트폴리오 결과를 맹신하지 마세요.
+                      </li>
+                      <li>ETF 가격, 배당률 등 데이터는 네이버 금융에서 가져오며, 실시간 정확성을 보장하지 않습니다.</li>
+                    </ul>
+                    <div className="mt-3 rounded-lg bg-amber-50 border border-amber-200 p-3 text-amber-800">
+                      <p className="font-extrabold text-[12px]">퇴직 예정자분께 드리는 안내</p>
+                      <p className="mt-1">
+                        퇴직을 앞두고 계신 분은 최적 포트폴리오 탐색보다
+                        <b> A형(연금저축)과 B형(IRP) 포트폴리오를 우선 활용</b>하시길 권장합니다.
+                        A·B형은 검증된 분산 투자 구조로 설계되어 있으며,
+                        안정형/중립형/성장형 모드를 통해 본인의 위험 감수 수준에 맞게 조절할 수 있습니다.
+                        퇴직금은 한번 잃으면 되돌리기 어려우므로 보수적으로 운용하시는 것을 추천드립니다.
+                      </p>
+                    </div>
+                  </div>
+                </section>
+
+                {/* 닫기 버튼 */}
+                <button
+                  type="button"
+                  onClick={() => setShowManual(false)}
+                  className="btn-primary w-full"
+                >
+                  닫기
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* ── 투자 조건 선택 ── */}
         <section className="ios-card px-3.5 py-3.5">
@@ -2004,7 +2377,8 @@ function App() {
           </summary>
           <div className="section-body px-3.5 pb-3.5">
             <p className="mb-2.5 text-[10px] leading-relaxed text-slate-400">
-              15개 ETF의 과거 1년 데이터를 활용하여 주식·금·채권·KOFR을 포함한 최적 조합을 탐색합니다.
+              15개 ETF의 과거 1년 데이터를 활용하여 최적 조합을 탐색합니다.
+              제약: 모든 종목 &lt;20% · 개별 주식 ≤10% · KOFR ≥5% · 안전자산 ≥30% · 배당 3~4% · 주식·금·채권·KOFR 각 1개 이상.
               우선순위: ① CAGR 최대 ② MDD 최소 ③ 배당 수익률
             </p>
 
@@ -2093,16 +2467,35 @@ function App() {
                   );
                 })}
 
-                <p className="text-[9px] leading-relaxed text-slate-400">
-                  ※ 과거 1년 백테스트 결과이며 미래 수익을 보장하지 않습니다.
-                  5% 단위 비중 그리드 탐색, 배당 재투자 반영 CAGR 기준.
+                <div className="rounded-lg border border-rose-200 bg-rose-50 p-2.5">
+                  <p className="text-[10px] font-bold leading-relaxed text-rose-700">
+                    ※ 과거 1년 데이터 기반의 백테스트 결과이며 미래 수익을 보장하지 않습니다.
+                    투자 판단의 참고 자료일 뿐, 투자 권유가 아닙니다.
+                    모든 투자 결정과 책임은 투자자 본인에게 있습니다.
+                  </p>
+                  <p className="mt-1 text-[9px] leading-relaxed text-rose-500">
+                    퇴직 예정자는 최적 포트폴리오보다 A형·B형 포트폴리오를 우선 활용하시길 권장합니다.
+                  </p>
+                </div>
+                <p className="mt-1.5 text-[9px] leading-relaxed text-slate-400">
+                  5% 단위 비중 그리드 → 정밀 탐색, 모든 종목 &lt;20%, 개별 주식 ≤10%, KOFR ≥5%, 안전자산 ≥30%, 배당 3~4%, 배당 재투자 반영 CAGR.
                 </p>
               </div>
             )}
           </div>
         </details>
 
-        <p className="pb-1 pt-1 text-center text-[9px] tracking-wider text-slate-400">
+        <div className="rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5">
+          <p className="text-center text-[9px] font-semibold leading-relaxed text-slate-500">
+            본 앱의 모든 정보는 투자 참고용이며, 투자 권유가 아닙니다.
+            투자 결정과 그에 따른 책임은 전적으로 투자자 본인에게 있습니다.
+          </p>
+          <p className="mt-1.5 text-center text-[8px] leading-relaxed text-slate-400">
+            A형·B형 포트폴리오는 「마법의 연금 굴리기」(저자: 김성일) 서적을
+            참고하여 구성하였습니다. 해당 서적의 저작권은 저자에게 있습니다.
+          </p>
+        </div>
+        <p className="pb-1 pt-0.5 text-center text-[9px] tracking-wider text-slate-400">
           {PRODUCED_BY_LABEL}
         </p>
       </div>
