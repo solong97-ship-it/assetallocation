@@ -28,6 +28,11 @@ import {
   upsertStoredHistories,
   upsertStoredLatestQuotes,
 } from "./utils/marketDataStore";
+import {
+  findOptimalPortfolios,
+  OPTIMIZER_ALL_CODES,
+  type OptimalResult,
+} from "./utils/portfolioOptimizer";
 
 type StrategyType = "A" | "B" | "C" | "D" | "E";
 type RefreshStage = "idle" | "price" | "kpi" | "done" | "error";
@@ -543,6 +548,11 @@ function App() {
   const [bModeChartData, setBModeChartData] = useState<BModeChartData | null>(null);
   const [bModeChartLoading, setBModeChartLoading] = useState(false);
   const [bModeChartError, setBModeChartError] = useState<string | null>(null);
+
+  // 최적 포트폴리오 탐색
+  const [optimalResults, setOptimalResults] = useState<OptimalResult[] | null>(null);
+  const [optimalLoading, setOptimalLoading] = useState(false);
+  const [optimalError, setOptimalError] = useState<string | null>(null);
 
   const requiresMode = selection.strategy === "A" || selection.strategy === "B";
   const canShowResult = selection.principal > 0 && (!requiresMode || Boolean(selection.mode));
@@ -1179,6 +1189,60 @@ function App() {
       setBModeChartError("B형 수익률 데이터 조회 중 오류가 발생했습니다.");
     } finally {
       setBModeChartLoading(false);
+    }
+  };
+
+  const handleFindOptimal = async () => {
+    if (optimalLoading) return;
+    if (optimalResults) {
+      setOptimalResults(null);
+      return;
+    }
+
+    setOptimalLoading(true);
+    setOptimalError(null);
+
+    try {
+      const allCodes = OPTIMIZER_ALL_CODES;
+
+      // 배당 수익률 갱신
+      const cachedDY = getStoredDividendYieldsByCodes(allCodes);
+      const staleDYCodes = allCodes.filter((c) => !isStoredDividendYieldFresh(cachedDY[c], DIVIDEND_STALE_DAYS));
+      if (staleDYCodes.length > 0) {
+        const { dividendYieldByCode: dyMap, sourceByCode } = await fetchDividendYieldsByCodes(staleDYCodes);
+        upsertStoredDividendYields(dyMap, sourceByCode);
+      }
+
+      // 히스토리 갱신
+      const cachedH = getStoredHistoriesByCodes(allCodes);
+      const staleHCodes = allCodes.filter((c) => !isStoredHistoryFresh(cachedH[c], HISTORY_STALE_DAYS));
+      if (staleHCodes.length > 0) {
+        const { historyByCode: hMap } = await fetchOneYearHistoriesByCodes(staleHCodes, undefined, {
+          existingHistoryByCode: cachedH,
+          preferIncremental: true,
+          recentStaleDays: HISTORY_STALE_DAYS,
+        });
+        upsertStoredHistories(hMap);
+      }
+
+      const finalH = getStoredHistoriesByCodes(allCodes);
+      const finalDYEntries = getStoredDividendYieldsByCodes(allCodes);
+      const finalDY = Object.entries(finalDYEntries).reduce<Record<string, number>>(
+        (acc, [code, entry]) => { acc[code] = entry.dividendYield; return acc; },
+        {},
+      );
+
+      // 최적화 실행 (동기 — ~1-2초 소요)
+      const results = findOptimalPortfolios(finalH, finalDY, 3);
+      if (results.length === 0) {
+        setOptimalError("히스토리 데이터가 부족합니다. 먼저 '결과 보기'를 실행해 주세요.");
+      } else {
+        setOptimalResults(results);
+      }
+    } catch {
+      setOptimalError("최적 포트폴리오 탐색 중 오류가 발생했습니다.");
+    } finally {
+      setOptimalLoading(false);
     }
   };
 
@@ -1924,6 +1988,115 @@ function App() {
                     );
                   })}
                 </div>
+              </div>
+            )}
+          </div>
+        </details>
+
+        {/* ── 최적 포트폴리오 탐색 ── */}
+        <details className="ios-card ios-section">
+          <summary className="flex items-center justify-between px-3.5 py-3">
+            <div className="flex items-center gap-2">
+              <span className="text-[13px] font-bold text-slate-700">최적 포트폴리오 탐색</span>
+              <span className="chip bg-brand-50 text-brand-600">1Y 백테스트</span>
+            </div>
+            <span className="chevron">▼</span>
+          </summary>
+          <div className="section-body px-3.5 pb-3.5">
+            <p className="mb-2.5 text-[10px] leading-relaxed text-slate-400">
+              15개 ETF의 과거 1년 데이터를 활용하여 주식·금·채권·KOFR을 포함한 최적 조합을 탐색합니다.
+              우선순위: ① CAGR 최대 ② MDD 최소 ③ 배당 수익률
+            </p>
+
+            <button
+              type="button"
+              onClick={handleFindOptimal}
+              disabled={optimalLoading}
+              className={`btn-primary w-full ${optimalResults ? "!bg-slate-600" : ""}`}
+            >
+              {optimalLoading
+                ? "탐색 중… (1~3초 소요)"
+                : optimalResults
+                  ? "결과 닫기"
+                  : "최적 포트폴리오 탐색 시작"}
+            </button>
+
+            {optimalError && (
+              <p className="mt-2 text-[10px] font-semibold text-rose-500">{optimalError}</p>
+            )}
+
+            {optimalResults && (
+              <div className="mt-3 space-y-3 animate-fade-in">
+                {optimalResults.map((r) => {
+                  const rankColors = ["text-amber-500", "text-slate-400", "text-amber-700"];
+                  const rankBg = ["bg-amber-50 border-amber-200", "bg-slate-50 border-slate-200", "bg-orange-50 border-orange-200"];
+                  const sortedItems = [...r.items].sort((a, b) => b.weight - a.weight);
+
+                  return (
+                    <div key={r.rank} className={`rounded-xl border p-3 ${rankBg[r.rank - 1] ?? "bg-white border-slate-200"}`}>
+                      {/* 순위 + 점수 */}
+                      <div className="flex items-center justify-between">
+                        <span className={`text-[13px] font-black ${rankColors[r.rank - 1] ?? "text-slate-500"}`}>
+                          #{r.rank}
+                        </span>
+                        <span className="text-[9px] font-bold text-slate-400">
+                          종합점수 <span className="num">{r.score.toFixed(1)}</span>
+                        </span>
+                      </div>
+
+                      {/* KPI 그리드 */}
+                      <div className="mt-2 grid grid-cols-4 gap-1.5">
+                        <div className="rounded-lg bg-white/80 px-2 py-1.5 text-center">
+                          <p className="text-[8px] font-bold uppercase text-emerald-400">CAGR</p>
+                          <p className="num text-[13px] font-black text-emerald-600">{formatPercent(r.kpi.cagr)}</p>
+                        </div>
+                        <div className="rounded-lg bg-white/80 px-2 py-1.5 text-center">
+                          <p className="text-[8px] font-bold uppercase text-rose-400">MDD</p>
+                          <p className="num text-[13px] font-black text-rose-600">-{formatPercent(r.kpi.mdd)}</p>
+                        </div>
+                        <div className="rounded-lg bg-white/80 px-2 py-1.5 text-center">
+                          <p className="text-[8px] font-bold uppercase text-brand-400">Sharpe</p>
+                          <p className="num text-[13px] font-black text-brand-600">{r.kpi.sharpe.toFixed(2)}</p>
+                        </div>
+                        <div className="rounded-lg bg-white/80 px-2 py-1.5 text-center">
+                          <p className="text-[8px] font-bold uppercase text-violet-400">배당</p>
+                          <p className="num text-[13px] font-black text-violet-600">{formatPercent(r.kpi.annualDividendYield)}</p>
+                        </div>
+                      </div>
+
+                      {/* 종목 리스트 */}
+                      <div className="mt-2 space-y-0.5">
+                        {sortedItems.map((item) => (
+                          <div key={item.code} className="flex items-center gap-1.5 text-[10px]">
+                            <span className={`inline-block w-[32px] shrink-0 rounded-md py-0.5 text-center text-[9px] font-bold text-white ${
+                              item.category === "안전자산" ? "bg-sky-400" : "bg-rose-400"
+                            }`}>
+                              {item.weight}%
+                            </span>
+                            <span className="truncate font-semibold text-slate-600">{item.name}</span>
+                            <span className="ml-auto shrink-0 text-[9px] text-slate-400">{item.subCategory}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* 기간 + 자산 비중 */}
+                      <div className="mt-2 flex items-center justify-between text-[9px] text-slate-400">
+                        <span>
+                          {formatYmdFromDashDate(r.periodStart)} ~ {formatYmdFromDashDate(r.periodEnd)}
+                        </span>
+                        <span>
+                          안전 <span className="num font-bold text-sky-500">{r.safeWeight}%</span>
+                          {" / "}위험 <span className="num font-bold text-rose-500">{100 - r.safeWeight}%</span>
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                <p className="text-[9px] leading-relaxed text-slate-400">
+                  ※ 과거 1년 백테스트 결과이며 미래 수익을 보장하지 않습니다.
+                  5% 단위 비중 그리드 탐색, 배당 재투자 반영 CAGR 기준.
+                </p>
               </div>
             )}
           </div>
