@@ -328,6 +328,77 @@ function getKpiPeriodByWindow(
   };
 }
 
+type WeeklyReturnSeries = {
+  dates: string[];
+  values: number[];  // 100 = base (1년 전 100% 투자)
+};
+
+function computeWeeklyReturnSeries(
+  items: AssetItem[],
+  historyByCode: Record<string, PricePoint[]>,
+  weekInterval = 5
+): WeeklyReturnSeries | null {
+  const MIN_POINTS = 30;
+  const MAX_POINTS = 252;
+
+  const validItems = items.filter(
+    (item) => item.weight > 0 && (historyByCode[item.code]?.length ?? 0) >= MIN_POINTS
+  );
+  if (validItems.length === 0) return null;
+
+  const commonDates = new Set(historyByCode[validItems[0].code].map((p) => p.date));
+  for (let i = 1; i < validItems.length; i += 1) {
+    const dates = new Set(historyByCode[validItems[i].code].map((p) => p.date));
+    for (const d of [...commonDates]) {
+      if (!dates.has(d)) commonDates.delete(d);
+    }
+  }
+  const sortedDates = [...commonDates].sort();
+  if (sortedDates.length < MIN_POINTS) return null;
+  const slicedDates = sortedDates.slice(-Math.min(sortedDates.length, MAX_POINTS));
+
+  const wSum = validItems.reduce((s, it) => s + Math.max(0, it.weight), 0);
+  if (wSum <= 0) return null;
+  const weights = validItems.map((it) => Math.max(0, it.weight) / wSum);
+
+  const priceMap = validItems.reduce<Record<string, Map<string, number>>>((acc, item) => {
+    acc[item.code] = new Map(historyByCode[item.code].map((p) => [p.date, p.close]));
+    return acc;
+  }, {});
+
+  const baseDate = slicedDates[0];
+  const basePrices = validItems.map((item) => priceMap[item.code].get(baseDate) ?? 0);
+  if (basePrices.some((p) => p <= 0)) return null;
+
+  const weeklyDates: string[] = [];
+  const weeklyValues: number[] = [];
+
+  for (let i = 0; i < slicedDates.length; i += weekInterval) {
+    const date = slicedDates[i];
+    let idx = 0;
+    for (let j = 0; j < validItems.length; j += 1) {
+      const close = priceMap[validItems[j].code].get(date) ?? basePrices[j];
+      idx += weights[j] * (close / basePrices[j]);
+    }
+    weeklyDates.push(date);
+    weeklyValues.push(idx * 100);
+  }
+
+  // 마지막 날짜가 빠져있으면 추가
+  const lastDate = slicedDates[slicedDates.length - 1];
+  if (weeklyDates[weeklyDates.length - 1] !== lastDate) {
+    let idx = 0;
+    for (let j = 0; j < validItems.length; j += 1) {
+      const close = priceMap[validItems[j].code].get(lastDate) ?? basePrices[j];
+      idx += weights[j] * (close / basePrices[j]);
+    }
+    weeklyDates.push(lastDate);
+    weeklyValues.push(idx * 100);
+  }
+
+  return { dates: weeklyDates, values: weeklyValues };
+}
+
 function calculateCompoundProjection(
   initialPrincipal: number,
   annualContribution: number,
@@ -466,6 +537,12 @@ function App() {
   const [refreshMessage, setRefreshMessage] = useState("선택 후 결과 보기를 누르세요.");
   const refreshIdRef = useRef(0);
   const startupWarmupStartedRef = useRef(false);
+
+  // B형 1년 수익률 그래프
+  type BModeChartData = Record<PortfolioMode, WeeklyReturnSeries>;
+  const [bModeChartData, setBModeChartData] = useState<BModeChartData | null>(null);
+  const [bModeChartLoading, setBModeChartLoading] = useState(false);
+  const [bModeChartError, setBModeChartError] = useState<string | null>(null);
 
   const requiresMode = selection.strategy === "A" || selection.strategy === "B";
   const canShowResult = selection.principal > 0 && (!requiresMode || Boolean(selection.mode));
@@ -1045,6 +1122,107 @@ function App() {
       setStrategyCompareLoading(false);
     }
   };
+
+  const handleLoadBModeChart = async () => {
+    if (bModeChartLoading) return;
+    if (bModeChartData) {
+      setBModeChartData(null);
+      return;
+    }
+
+    setBModeChartLoading(true);
+    setBModeChartError(null);
+
+    try {
+      const modes: PortfolioMode[] = ["안정형", "중립형", "성장형"];
+      const portfolios = modes.map((m) =>
+        createConfiguredPortfolio({ principal: 100_000_000, strategy: "B", mode: m, kpiWindow: "1Y" })
+      );
+
+      const allCodes = uniqueCodesFromItems(portfolios.flatMap((p) => p.items));
+
+      // 배당 수익률 갱신
+      const cachedDY = getStoredDividendYieldsByCodes(allCodes);
+      const staleDYCodes = allCodes.filter((c) => !isStoredDividendYieldFresh(cachedDY[c], DIVIDEND_STALE_DAYS));
+      if (staleDYCodes.length > 0) {
+        const { dividendYieldByCode: dyMap, sourceByCode } = await fetchDividendYieldsByCodes(staleDYCodes);
+        upsertStoredDividendYields(dyMap, sourceByCode);
+      }
+
+      // 히스토리 갱신
+      const cachedHistories = getStoredHistoriesByCodes(allCodes);
+      const staleCodes = allCodes.filter((c) => !isStoredHistoryFresh(cachedHistories[c], HISTORY_STALE_DAYS));
+      if (staleCodes.length > 0) {
+        const { historyByCode: hMap } = await fetchOneYearHistoriesByCodes(staleCodes, undefined, {
+          existingHistoryByCode: cachedHistories,
+          preferIncremental: true,
+          recentStaleDays: HISTORY_STALE_DAYS,
+        });
+        upsertStoredHistories(hMap);
+      }
+
+      const finalHistories = getStoredHistoriesByCodes(allCodes);
+
+      const result = {} as Record<PortfolioMode, WeeklyReturnSeries>;
+      for (let i = 0; i < modes.length; i += 1) {
+        const series = computeWeeklyReturnSeries(portfolios[i].items, finalHistories);
+        if (!series) {
+          setBModeChartError("B형 히스토리 데이터가 부족합니다. 먼저 '결과 보기'를 실행해 주세요.");
+          setBModeChartLoading(false);
+          return;
+        }
+        result[modes[i]] = series;
+      }
+
+      setBModeChartData(result);
+    } catch {
+      setBModeChartError("B형 수익률 데이터 조회 중 오류가 발생했습니다.");
+    } finally {
+      setBModeChartLoading(false);
+    }
+  };
+
+  const bModeChart = useMemo(() => {
+    if (!bModeChartData) return null;
+
+    const modes: PortfolioMode[] = ["안정형", "중립형", "성장형"];
+    const colors: Record<PortfolioMode, string> = {
+      안정형: "#3B82F6",
+      중립형: "#F59E0B",
+      성장형: "#F43F5E",
+    };
+
+    const allValues = modes.flatMap((m) => bModeChartData[m].values);
+    const minV = Math.min(...allValues);
+    const maxV = Math.max(...allValues);
+    const pad = (maxV - minV) * 0.05 || 1;
+    const chartMin = minV - pad;
+    const chartMax = maxV + pad;
+
+    const width = 360;
+    const height = 180;
+    const padX = 24;
+    const padY = 16;
+
+    const lines = modes.map((m) => ({
+      mode: m,
+      color: colors[m],
+      points: toChartPoints(bModeChartData[m].values, width, height, padX, padY, chartMin, chartMax),
+      lastValue: bModeChartData[m].values[bModeChartData[m].values.length - 1],
+    }));
+
+    // 100% 기준선 y좌표
+    const chartHeight = height - padY * 2;
+    const range = Math.max(1, chartMax - chartMin);
+    const baselineY = padY + ((chartMax - 100) / range) * chartHeight;
+
+    // 기간 라벨
+    const dates = bModeChartData["안정형"].dates;
+    const startLabel = formatYmdFromDashDate(dates[0]);
+    const endLabel = formatYmdFromDashDate(dates[dates.length - 1]);
+
+    return { width, height, padX, padY, lines, baselineY, startLabel, endLabel, chartMin, chartMax };
+  }, [bModeChartData]);
 
   return (
     <div className="min-h-dvh overflow-x-hidden px-2.5 pb-6 pt-3">
@@ -1632,6 +1810,122 @@ function App() {
               </div>
             </div>
             <p className="mt-1.5 text-[10px] leading-relaxed text-slate-400">{compoundEvaluationText}</p>
+          </div>
+        </details>
+
+        {/* ── B형 1년 수익률 비교 그래프 ── */}
+        <details className="ios-card ios-section">
+          <summary className="flex items-center justify-between px-3.5 py-3">
+            <div className="flex items-center gap-2">
+              <span className="text-[13px] font-bold text-slate-700">B형 1년 수익률 비교</span>
+              <span className="chip bg-rose-50 text-rose-600">DC 퇴직금</span>
+            </div>
+            <span className="chevron">▼</span>
+          </summary>
+          <div className="section-body px-3.5 pb-3.5">
+            <p className="mb-2.5 text-[10px] leading-relaxed text-slate-400">
+              B형(IRP) 안정·중립·성장형의 최근 1년 주간 포트폴리오 수익률 추이입니다.
+              1년 전 100% 투자 기준으로 변동폭을 비교하여 향후 투자성향 변경을 판단하세요.
+            </p>
+
+            <button
+              type="button"
+              onClick={handleLoadBModeChart}
+              disabled={bModeChartLoading}
+              className={`btn-primary w-full ${bModeChartData ? "!bg-slate-600" : ""}`}
+            >
+              {bModeChartLoading
+                ? "데이터 조회 중..."
+                : bModeChartData
+                  ? "그래프 닫기"
+                  : "B형 1년 수익률 그래프 보기"}
+            </button>
+
+            {bModeChartError && (
+              <p className="mt-2 text-[10px] font-semibold text-rose-500">{bModeChartError}</p>
+            )}
+
+            {bModeChart && (
+              <div className="mt-3 animate-fade-in">
+                {/* 범례 */}
+                <div className="mb-2 flex items-center justify-center gap-3">
+                  {bModeChart.lines.map((line) => (
+                    <span key={line.mode} className="inline-flex items-center gap-1 text-[10px] font-bold" style={{ color: line.color }}>
+                      <span className="inline-block h-[3px] w-3.5 rounded-full" style={{ background: line.color }} />
+                      {line.mode}
+                      <span className="num font-extrabold">{line.lastValue.toFixed(1)}%</span>
+                    </span>
+                  ))}
+                </div>
+
+                {/* 차트 */}
+                <div className="overflow-hidden rounded-lg border border-brand-100 bg-gradient-to-br from-slate-50 to-white p-2">
+                  <svg viewBox={`0 0 ${bModeChart.width} ${bModeChart.height}`} className="h-40 w-full">
+                    {/* 100% 기준선 */}
+                    <line
+                      x1={bModeChart.padX}
+                      y1={bModeChart.baselineY}
+                      x2={bModeChart.width - bModeChart.padX}
+                      y2={bModeChart.baselineY}
+                      stroke="#94A3B8"
+                      strokeWidth="0.6"
+                      strokeDasharray="3 2"
+                    />
+                    <text
+                      x={bModeChart.padX - 2}
+                      y={bModeChart.baselineY - 3}
+                      fill="#94A3B8"
+                      fontSize="8"
+                      textAnchor="start"
+                    >
+                      100%
+                    </text>
+
+                    {/* y축 상한/하한 */}
+                    <text x={bModeChart.padX - 2} y={bModeChart.padY - 2} fill="#94A3B8" fontSize="7" textAnchor="start">
+                      {bModeChart.chartMax.toFixed(0)}%
+                    </text>
+                    <text x={bModeChart.padX - 2} y={bModeChart.height - bModeChart.padY + 10} fill="#94A3B8" fontSize="7" textAnchor="start">
+                      {bModeChart.chartMin.toFixed(0)}%
+                    </text>
+
+                    {/* 3개 라인 */}
+                    {bModeChart.lines.map((line) => (
+                      <polyline
+                        key={line.mode}
+                        points={line.points}
+                        fill="none"
+                        stroke={line.color}
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    ))}
+                  </svg>
+
+                  {/* x축 라벨 */}
+                  <div className="flex items-center justify-between text-[9px] text-slate-400">
+                    <span>{bModeChart.startLabel}</span>
+                    <span>{bModeChart.endLabel}</span>
+                  </div>
+                </div>
+
+                {/* 요약 평가 */}
+                <div className="mt-2 space-y-1">
+                  {bModeChart.lines.map((line) => {
+                    const ret = line.lastValue - 100;
+                    return (
+                      <div key={line.mode} className="flex items-center justify-between text-[11px]">
+                        <span className="font-bold" style={{ color: line.color }}>{line.mode}</span>
+                        <span className={`num font-extrabold ${ret >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+                          {ret >= 0 ? "+" : ""}{ret.toFixed(1)}%
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         </details>
 
