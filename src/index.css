@@ -5,17 +5,17 @@
 @tailwind utilities;
 
 /* ════════════════════════════════════════
-   Design Tokens
+   Design Tokens  (mobile-first)
 ════════════════════════════════════════ */
 :root {
   --font-ui: "Inter", "Noto Sans KR", -apple-system, BlinkMacSystemFont, sans-serif;
-  --bg-page: #EEF2FF;
+  --bg-page: #F0F2F8;
   --color-card: #FFFFFF;
-  --radius-card: 22px;
-  --radius-inner: 14px;
-  --shadow-card: 0 2px 20px rgba(99,102,241,0.09), 0 1px 4px rgba(0,0,0,0.04);
-  --shadow-header: 0 8px 36px rgba(99,102,241,0.32);
-  --border: rgba(226,232,240,0.8);
+  --radius-card: 18px;
+  --radius-inner: 12px;
+  --shadow-card: 0 1px 12px rgba(99,102,241,0.07), 0 1px 3px rgba(0,0,0,0.04);
+  --shadow-header: 0 6px 28px rgba(99,102,241,0.28);
+  --border: rgba(226,232,240,0.7);
 }
 
 /* ════════════════════════════════════════
@@ -23,16 +23,18 @@
 ════════════════════════════════════════ */
 *, *::before, *::after { box-sizing: border-box; }
 * { -webkit-tap-highlight-color: transparent; }
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; font-size: 16px; }
 
 body {
   font-family: var(--font-ui);
   background: var(--bg-page);
-  color: #0F172A;
+  color: #1E293B;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   min-height: 100dvh;
   letter-spacing: -0.01em;
+  font-size: 13px;
+  line-height: 1.5;
 }
 
 button, input, select, textarea { font: inherit; }
@@ -46,13 +48,13 @@ input[type="number"] { -moz-appearance: textfield; }
 /* ════════════════════════════════════════
    Scrollbars
 ════════════════════════════════════════ */
-::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar { width: 3px; height: 3px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #C7D2FE; border-radius: 99px; }
 ::-webkit-scrollbar-thumb:hover { background: #818CF8; }
 
 /* ════════════════════════════════════════
-   App Header (Indigo Gradient)
+   App Header (Compact Indigo Gradient)
 ════════════════════════════════════════ */
 .app-header {
   background: linear-gradient(135deg, #6366F1 0%, #7C3AED 100%);
@@ -61,27 +63,25 @@ input[type="number"] { -moz-appearance: textfield; }
   position: relative;
   overflow: hidden;
 }
-
-/* decorative circles */
 .app-header::before {
   content: "";
   position: absolute;
-  top: -40%;
-  right: -12%;
-  width: 260px;
-  height: 260px;
-  background: rgba(255,255,255,0.07);
+  top: -50%;
+  right: -15%;
+  width: 200px;
+  height: 200px;
+  background: rgba(255,255,255,0.06);
   border-radius: 50%;
   pointer-events: none;
 }
 .app-header::after {
   content: "";
   position: absolute;
-  bottom: -35%;
-  left: -8%;
-  width: 190px;
-  height: 190px;
-  background: rgba(255,255,255,0.05);
+  bottom: -40%;
+  left: -10%;
+  width: 150px;
+  height: 150px;
+  background: rgba(255,255,255,0.04);
   border-radius: 50%;
   pointer-events: none;
 }
@@ -99,81 +99,76 @@ input[type="number"] { -moz-appearance: textfield; }
 .ios-subcard {
   background: #F8FAFF;
   border-radius: var(--radius-inner);
-  border: 1px solid rgba(199,210,254,0.5);
+  border: 1px solid rgba(199,210,254,0.45);
 }
 
 /* ════════════════════════════════════════
-   Portfolio Tabs (white pills on header)
+   Collapsible Sections (iOS-style)
 ════════════════════════════════════════ */
-.tab-scroll {
-  display: flex;
-  gap: 6px;
-  overflow-x: auto;
-  padding-bottom: 2px;
-  scrollbar-width: none;
-}
-.tab-scroll::-webkit-scrollbar { display: none; }
-
-.tab-pill {
-  flex-shrink: 0;
-  padding: 6px 15px;
-  border-radius: 99px;
-  font-size: 13px;
-  font-weight: 600;
+.ios-section summary {
+  list-style: none;
   cursor: pointer;
-  border: 1.5px solid rgba(255,255,255,0.30);
-  background: rgba(255,255,255,0.12);
-  color: rgba(255,255,255,0.78);
-  transition: all 0.18s ease;
-  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
-.tab-pill:hover {
-  background: rgba(255,255,255,0.22);
-  color: white;
+.ios-section summary::-webkit-details-marker { display: none; }
+.ios-section summary::marker { display: none; content: ""; }
+
+.ios-section .chevron {
+  display: inline-block;
+  transition: transform 0.2s ease;
+  font-size: 11px;
+  color: #94A3B8;
+  flex-shrink: 0;
 }
-.tab-pill.tab-active {
-  background: white;
-  color: #6366F1;
-  border-color: white;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.15);
-  font-weight: 700;
+.ios-section[open] .chevron { transform: rotate(180deg); }
+
+.ios-section .section-body {
+  animation: section-open 0.15s ease-out;
+}
+@keyframes section-open {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 /* ════════════════════════════════════════
-   Metric Cards
+   Metric Values  (mobile-compact)
 ════════════════════════════════════════ */
 .metric-card {
   background: white;
-  border-radius: 16px;
-  padding: 16px;
-  box-shadow: 0 1px 8px rgba(0,0,0,0.06), 0 0 0 1px rgba(226,232,240,0.7);
+  border-radius: 12px;
+  padding: 10px 12px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.05), 0 0 0 1px rgba(226,232,240,0.6);
 }
 
 .metric-value {
-  font-size: 21px;
+  font-size: 14px;
   font-weight: 800;
-  letter-spacing: -0.6px;
-  line-height: 1.15;
+  letter-spacing: -0.3px;
+  line-height: 1.2;
   font-variant-numeric: tabular-nums;
 }
 
 .metric-label {
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.65px;
+  letter-spacing: 0.5px;
   color: #94A3B8;
-  margin-bottom: 5px;
+  margin-bottom: 3px;
 }
+
+/* tabular-nums utility */
+.num { font-variant-numeric: tabular-nums; }
 
 /* ════════════════════════════════════════
    KPI Cards
 ════════════════════════════════════════ */
 .kpi-card {
   background: white;
-  border-radius: 16px;
-  padding: 16px;
-  box-shadow: 0 1px 8px rgba(0,0,0,0.06), 0 0 0 1px rgba(226,232,240,0.7);
+  border-radius: 12px;
+  padding: 10px 12px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.05), 0 0 0 1px rgba(226,232,240,0.6);
   border-top: 3px solid transparent;
 }
 .kpi-cagr   { border-top-color: #10B981; }
@@ -182,23 +177,25 @@ input[type="number"] { -moz-appearance: textfield; }
 .kpi-div    { border-top-color: #8B5CF6; }
 
 /* ════════════════════════════════════════
-   Buttons
+   Buttons  (44px min touch target)
 ════════════════════════════════════════ */
 .btn-primary {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   background: linear-gradient(135deg, #6366F1 0%, #7C3AED 100%);
   color: white;
   border: none;
   border-radius: 12px;
-  padding: 10px 18px;
-  font-size: 14px;
-  font-weight: 600;
+  padding: 11px 18px;
+  font-size: 13px;
+  font-weight: 700;
   cursor: pointer;
   transition: opacity 0.15s, transform 0.1s;
-  box-shadow: 0 3px 12px rgba(99,102,241,0.35);
+  box-shadow: 0 3px 12px rgba(99,102,241,0.30);
   white-space: nowrap;
+  min-height: 44px;
 }
 .btn-primary:hover  { opacity: 0.90; }
 .btn-primary:active { transform: scale(0.98); }
@@ -207,17 +204,19 @@ input[type="number"] { -moz-appearance: textfield; }
 .btn-ghost {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  justify-content: center;
+  gap: 4px;
   background: white;
   color: #475569;
   border: 1.5px solid #E2E8F0;
-  border-radius: 11px;
-  padding: 8px 13px;
-  font-size: 13px;
+  border-radius: 10px;
+  padding: 7px 12px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s;
   white-space: nowrap;
+  min-height: 36px;
 }
 .btn-ghost:hover {
   background: #F8FAFF;
@@ -229,13 +228,13 @@ input[type="number"] { -moz-appearance: textfield; }
 .btn-danger {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   background: #FFF1F2;
   color: #BE123C;
   border: 1.5px solid #FECDD3;
-  border-radius: 11px;
-  padding: 8px 13px;
-  font-size: 13px;
+  border-radius: 10px;
+  padding: 7px 12px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s;
@@ -248,56 +247,59 @@ input[type="number"] { -moz-appearance: textfield; }
    Mode Buttons (안정/중립/성장)
 ════════════════════════════════════════ */
 .mode-btn {
-  padding: 5px 15px;
+  padding: 6px 14px;
   border-radius: 99px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.15s;
   border: 1.5px solid;
   background: transparent;
+  min-height: 36px;
 }
 .mode-안정형        { border-color: #60A5FA; color: #2563EB; }
-.mode-안정형.active { background: #3B82F6; color: white; border-color: #3B82F6; box-shadow: 0 2px 10px rgba(59,130,246,0.30); }
+.mode-안정형.active { background: #3B82F6; color: white; border-color: #3B82F6; box-shadow: 0 2px 8px rgba(59,130,246,0.25); }
 .mode-중립형        { border-color: #FCD34D; color: #B45309; }
-.mode-중립형.active { background: #F59E0B; color: white; border-color: #F59E0B; box-shadow: 0 2px 10px rgba(245,158,11,0.30); }
+.mode-중립형.active { background: #F59E0B; color: white; border-color: #F59E0B; box-shadow: 0 2px 8px rgba(245,158,11,0.25); }
 .mode-성장형        { border-color: #FDA4AF; color: #BE123C; }
-.mode-성장형.active { background: #F43F5E; color: white; border-color: #F43F5E; box-shadow: 0 2px 10px rgba(244,63,94,0.30); }
+.mode-성장형.active { background: #F43F5E; color: white; border-color: #F43F5E; box-shadow: 0 2px 8px rgba(244,63,94,0.25); }
 
 /* ════════════════════════════════════════
-   Inputs
+   Inputs  (mobile-friendly)
 ════════════════════════════════════════ */
 .ios-input {
   background: #F8FAFF;
   border: 1.5px solid #E2E8F0;
-  border-radius: 12px;
-  padding: 10px 14px;
+  border-radius: 10px;
+  padding: 9px 12px;
   font-size: 14px;
   font-family: var(--font-ui);
+  font-variant-numeric: tabular-nums;
   transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
   outline: none;
   width: 100%;
   color: #0F172A;
+  min-height: 42px;
 }
 .ios-input:focus {
   border-color: #818CF8;
-  box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.10);
   background: white;
 }
 
 /* ════════════════════════════════════════
-   Table (Desktop)
+   Table (horizontal-scroll on mobile)
 ════════════════════════════════════════ */
-.ios-table { width: 100%; border-collapse: collapse; }
+.ios-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
 
 .ios-table thead th {
   background: #F8FAFF;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.65px;
+  letter-spacing: 0.5px;
   color: #94A3B8;
-  padding: 10px 12px;
+  padding: 8px 10px;
   position: sticky;
   top: 0;
   z-index: 10;
@@ -305,12 +307,13 @@ input[type="number"] { -moz-appearance: textfield; }
 }
 .ios-table tbody tr { border-bottom: 1px solid #F1F5F9; transition: background 0.1s; }
 .ios-table tbody tr:hover { background: #F8FAFF; }
+.ios-table tbody td { font-size: 12px; }
 .ios-table tfoot td {
   background: #1E293B;
   color: white;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
-  padding: 12px;
+  padding: 10px;
 }
 
 /* ════════════════════════════════════════
@@ -318,9 +321,9 @@ input[type="number"] { -moz-appearance: textfield; }
 ════════════════════════════════════════ */
 .badge {
   display: inline-block;
-  border-radius: 6px;
-  padding: 2px 7px;
-  font-size: 10px;
+  border-radius: 5px;
+  padding: 1px 6px;
+  font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.2px;
 }
@@ -331,8 +334,8 @@ input[type="number"] { -moz-appearance: textfield; }
    Status Dot
 ════════════════════════════════════════ */
 .status-dot {
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   display: inline-block;
   flex-shrink: 0;
@@ -341,10 +344,23 @@ input[type="number"] { -moz-appearance: textfield; }
 .status-dot-ok      { background: #86EFAC; }
 
 /* ════════════════════════════════════════
+   Chip (inline tag)
+════════════════════════════════════════ */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 99px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* ════════════════════════════════════════
    Animations
 ════════════════════════════════════════ */
 @keyframes fade-in {
-  from { opacity: 0; transform: translateY(8px); }
+  from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 @keyframes pulse-dot {
@@ -352,4 +368,4 @@ input[type="number"] { -moz-appearance: textfield; }
   50%       { opacity: 0.35; }
 }
 
-.animate-fade-in { animation: fade-in 0.35s ease-out both; }
+.animate-fade-in { animation: fade-in 0.25s ease-out both; }

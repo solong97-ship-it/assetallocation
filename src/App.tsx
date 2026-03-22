@@ -460,8 +460,8 @@ function App() {
   const [strategyCompareLoading, setStrategyCompareLoading] = useState(false);
   const [strategyCompareRows, setStrategyCompareRows] = useState<StrategyComparisonRow[]>([]);
   const [strategyCompareError, setStrategyCompareError] = useState<string | null>(null);
-  const [strategyComparePrincipal, setStrategyComparePrincipal] = useState<number | null>(null);
-  const [strategyCompareUpdatedAt, setStrategyCompareUpdatedAt] = useState<string | null>(null);
+  const [, setStrategyComparePrincipal] = useState<number | null>(null);
+  const [, setStrategyCompareUpdatedAt] = useState<string | null>(null);
   const [refreshState, setRefreshState] = useState<RefreshState>(() => createInitialRefreshState());
   const [refreshMessage, setRefreshMessage] = useState("선택 후 결과 보기를 누르세요.");
   const refreshIdRef = useRef(0);
@@ -622,22 +622,7 @@ function App() {
       : Math.min(totalSteps, refreshState.priceDone + refreshState.kpiDone);
   const progressPercent = Math.round((doneSteps / totalSteps) * 100);
   const isRefreshing = refreshState.stage === "price" || refreshState.stage === "kpi";
-  const refreshActionLabel =
-    refreshState.stage === "price"
-      ? "시세 조회 중..."
-      : refreshState.stage === "kpi"
-        ? "KPI 조회 중..."
-        : "최신 시세 다시 조회";
-  const strategyCompareTitle =
-    strategyCompareMode === "ABCDE"
-      ? `A~E 최근 ${activeKpiLabel} KPI & 월배당금 비교`
-      : strategyCompareMode === "A_MODES"
-        ? `A 전략: 안정/중립/성장 최근 ${activeKpiLabel} KPI & 월배당금 비교`
-        : strategyCompareMode === "B_MODES"
-          ? `B 전략: 안정/중립/성장 최근 ${activeKpiLabel} KPI & 월배당금 비교`
-          : strategyCompareMode === "A_GROWTH_SP500"
-            ? `${activeKpiLabel} KPI 비교: A(성장) vs ${SP500_BENCHMARK_DISPLAY}`
-            : "";
+  // refreshActionLabel and strategyCompareTitle removed (unused after mobile redesign)
 
   const refreshForPortfolio = async (portfolio: Portfolio) => {
     const refreshId = refreshIdRef.current + 1;
@@ -1062,35 +1047,27 @@ function App() {
   };
 
   return (
-    <div className="min-h-dvh overflow-x-hidden px-3 py-4 sm:px-4 sm:py-6">
-      <div className="mx-auto max-w-[880px] space-y-4">
+    <div className="min-h-dvh overflow-x-hidden px-2.5 pb-6 pt-3">
+      <div className="mx-auto max-w-[460px] space-y-2.5">
 
-        {/* ── Header ── */}
-        <header className="app-header px-5 py-5 sm:px-6 sm:py-6">
-          <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-white/50">
-            {PRODUCED_BY_LABEL}
-          </p>
-          <h1 className="text-xl font-black tracking-tight text-white sm:text-2xl">
-            절세계좌 자산배분 투자
-          </h1>
-          <p className="mt-2 text-sm leading-relaxed text-white/80">
-            투자금액과 전략(A~E)을 선택하면 최신 시세를 우선 반영해 종목별 주식수, 선택한 기간 KPI, 월배당 추정, 검산 차이까지 한 번에 보여줍니다.
-          </p>
-          <p className="mt-1.5 text-[11px] leading-relaxed text-white/55">
-            핵심 기능: 최신 시세 자동 조회 · 종목별 비중/수량 요약 · KPI 계산 기간 선택(1년/6개월/3개월/1개월) · 실데이터 기준 월배당금 · 투자금액 검산
+        {/* ── Header (compact) ── */}
+        <header className="app-header px-4 py-4">
+          <h1 className="text-[15px] font-black tracking-tight text-white">절세계좌 자산배분 투자</h1>
+          <p className="mt-1 text-[11px] leading-relaxed text-white/70">
+            투자금·전략(A~E) 선택 → 최신 시세 반영 · KPI · 월배당 · 검산
           </p>
         </header>
 
         {/* ── 투자 조건 선택 ── */}
-        <section className="ios-card p-4 sm:p-5">
-          <h2 className="text-sm font-bold text-slate-700 sm:text-base">투자 조건 선택</h2>
+        <section className="ios-card px-3.5 py-3.5">
+          <h2 className="text-[13px] font-bold text-slate-700">투자 조건 선택</h2>
 
-          <div className="mt-3 space-y-4">
+          <div className="mt-2.5 space-y-3">
             {/* 투자금액 */}
             <div>
-              <p className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">투자금액</p>
+              <p className="mb-1 text-[9px] font-bold uppercase tracking-widest text-slate-400">투자금액</p>
               <input
-                className="ios-input text-right text-base font-bold"
+                className="ios-input text-right text-sm font-bold"
                 inputMode="decimal"
                 value={
                   principalFocused
@@ -1114,7 +1091,7 @@ function App() {
                   }))
                 }
               />
-              <div className="mt-2 grid grid-cols-3 gap-2">
+              <div className="mt-1.5 grid grid-cols-3 gap-1.5">
                 {PRINCIPAL_QUICK_ADD.map((quick) => (
                   <button
                     key={quick.label}
@@ -1125,7 +1102,7 @@ function App() {
                         principal: sanitizeNonNegativeNumber(prev.principal + quick.amount, 0),
                       }))
                     }
-                    className="btn-ghost py-2 text-xs"
+                    className="btn-ghost"
                   >
                     +{quick.label}
                   </button>
@@ -1135,8 +1112,8 @@ function App() {
 
             {/* 투자방식 */}
             <div>
-              <p className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">투자방식</p>
-              <div className="grid grid-cols-5 gap-2">
+              <p className="mb-1 text-[9px] font-bold uppercase tracking-widest text-slate-400">투자방식</p>
+              <div className="grid grid-cols-5 gap-1.5">
                 {(["A", "B", "C", "D", "E"] as StrategyType[]).map((strategy) => {
                   const active = selection.strategy === strategy;
                   return (
@@ -1153,10 +1130,10 @@ function App() {
                               : null,
                         }))
                       }
-                      className={`rounded-xl border py-2.5 text-sm font-bold transition ${
+                      className={`rounded-lg border py-2 text-[13px] font-bold transition ${
                         active
                           ? "border-brand-500 bg-brand-500 text-white shadow-glow"
-                          : "border-slate-200 bg-white text-slate-600 hover:border-brand-300 hover:text-brand-600"
+                          : "border-slate-200 bg-white text-slate-500 hover:border-brand-300"
                       }`}
                     >
                       {strategy}
@@ -1164,20 +1141,16 @@ function App() {
                   );
                 })}
               </div>
-              <div className="mt-2 grid grid-cols-1 gap-1 text-[11px] text-slate-500 sm:grid-cols-2">
-                {(["A", "B", "C", "D", "E"] as StrategyType[]).map((strategy) => (
-                  <p key={strategy}>
-                    <span className="font-semibold text-slate-700">{strategy}</span> · {strategyDescriptions[strategy]}
-                  </p>
-                ))}
-              </div>
+              <p className="mt-1.5 text-[10px] text-slate-400">
+                <span className="font-semibold text-slate-600">{selection.strategy}</span> · {strategyDescriptions[selection.strategy]}
+              </p>
             </div>
 
             {/* 투자성향 */}
             {requiresMode && (
               <div>
-                <p className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">A/B 투자성향</p>
-                <div className="grid grid-cols-3 gap-2">
+                <p className="mb-1 text-[9px] font-bold uppercase tracking-widest text-slate-400">투자성향</p>
+                <div className="grid grid-cols-3 gap-1.5">
                   {(["안정형", "중립형", "성장형"] as PortfolioMode[]).map((mode) => (
                     <button
                       key={mode}
@@ -1194,8 +1167,8 @@ function App() {
 
             {/* KPI 기간 */}
             <div>
-              <p className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">KPI 기간</p>
-              <div className="grid grid-cols-4 gap-2">
+              <p className="mb-1 text-[9px] font-bold uppercase tracking-widest text-slate-400">KPI 기간</p>
+              <div className="grid grid-cols-4 gap-1.5">
                 {KPI_WINDOW_LIST.map((window) => {
                   const active = selection.kpiWindow === window;
                   return (
@@ -1203,10 +1176,10 @@ function App() {
                       key={window}
                       type="button"
                       onClick={() => setSelection((prev) => ({ ...prev, kpiWindow: window }))}
-                      className={`rounded-xl border py-2 text-xs font-bold transition ${
+                      className={`rounded-lg border py-1.5 text-[11px] font-bold transition ${
                         active
                           ? "border-brand-500 bg-brand-500 text-white"
-                          : "border-slate-200 bg-white text-slate-600 hover:border-brand-300 hover:text-brand-600"
+                          : "border-slate-200 bg-white text-slate-500 hover:border-brand-300"
                       }`}
                     >
                       {KPI_WINDOW_LABELS[window]}
@@ -1221,11 +1194,11 @@ function App() {
               type="button"
               onClick={handleShowResult}
               disabled={!canShowResult || isRefreshing}
-              className="btn-primary w-full justify-center py-3 text-sm"
+              className="btn-primary w-full"
             >
               {isRefreshing ? (
                 <>
-                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-r-transparent" />
+                  <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-r-transparent" />
                   조회 진행 중...
                 </>
               ) : "결과 보기"}
@@ -1235,421 +1208,283 @@ function App() {
 
         {/* ── 결과 섹션 ── */}
         {resultPortfolio && appliedSelection && (
-          <section className="ios-card p-4 sm:p-5 animate-fade-in">
-
-            {/* 상단 - 설정 요약 + 새로고침 */}
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex flex-wrap gap-1.5">
-                <span className="inline-flex items-center rounded-full bg-brand-100 px-3 py-1 text-xs font-semibold text-brand-700">
-                  {formatCurrencyKRW(appliedSelection.principal)}
-                </span>
-                <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
-                  {appliedSelection.strategy}형
-                </span>
-                {(appliedSelection.strategy === "A" || appliedSelection.strategy === "B") && (
-                  <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
-                    {appliedSelection.mode}
-                  </span>
-                )}
-                <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
-                  KPI {KPI_WINDOW_LABELS[appliedSelection.kpiWindow]}
-                </span>
+          <>
+            {/* 핵심 요약 카드 (항상 표시) */}
+            <section className="ios-card px-3.5 py-3 animate-fade-in">
+              <div className="flex items-center justify-between">
+                <div className="flex flex-wrap gap-1">
+                  <span className="chip bg-brand-100 text-brand-700">{formatCurrencyKRW(appliedSelection.principal)}</span>
+                  <span className="chip bg-slate-100 text-slate-600">{appliedSelection.strategy}형{(appliedSelection.strategy === "A" || appliedSelection.strategy === "B") ? ` · ${appliedSelection.mode}` : ""}</span>
+                  <span className="chip bg-slate-100 text-slate-600">{KPI_WINDOW_LABELS[appliedSelection.kpiWindow]}</span>
+                </div>
+                <button type="button" onClick={handleRefreshLatest} disabled={isRefreshing} className="btn-ghost !px-2 !py-1 !text-[10px] disabled:opacity-50">
+                  {isRefreshing ? "조회중" : "새로고침"}
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={handleRefreshLatest}
-                disabled={isRefreshing}
-                className="btn-ghost disabled:opacity-50"
-              >
-                {isRefreshing ? (
-                  <>
-                    <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-brand-500 border-r-transparent" />
-                    {refreshActionLabel}
-                  </>
-                ) : "최신 시세 다시 조회"}
-              </button>
-            </div>
 
-            {/* 진행 상태 */}
-            <div className="ios-subcard mt-3 p-3">
-              <p className="text-xs text-slate-600">{refreshMessage}</p>
-              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-brand-100">
-                <div
-                  className={`h-full rounded-full transition-all duration-500 ${
-                    isRefreshing
-                      ? "animate-pulse bg-gradient-to-r from-brand-500 via-brand-400 to-brand-300"
-                      : "bg-brand-400"
-                  }`}
-                  style={{ width: `${Math.max(0, Math.min(100, progressPercent))}%` }}
-                />
-              </div>
-              {isRefreshing && (
-                <div className="mt-2 flex items-center gap-2">
-                  <span className="status-dot status-dot-loading" />
-                  <p className="text-xs font-semibold text-brand-700">
-                    {refreshState.stage === "price" ? "실시간 시세 조회 중" : "KPI 히스토리 조회 중"}
-                  </p>
+              {/* 핵심 지표 3열 */}
+              <div className="mt-2.5 grid grid-cols-3 gap-2">
+                <div className="text-center">
+                  <p className="text-[9px] font-bold uppercase tracking-wide text-slate-400">종목</p>
+                  <p className="num text-[14px] font-extrabold text-slate-800">{resultRows.length}<span className="text-[10px] font-semibold">개</span></p>
                 </div>
-              )}
-              <div className="mt-2 grid grid-cols-2 gap-1.5 text-[11px] text-slate-500 sm:grid-cols-3">
-                <p>단계: <span className="font-semibold text-slate-700">{refreshStageText[refreshState.stage]}</span></p>
-                <p>진행: <span className="font-semibold text-slate-700">{doneSteps}/{totalSteps} ({progressPercent}%)</span></p>
-                <p>처리중: <span className="font-semibold text-slate-700">{refreshState.currentName ?? "-"}</span></p>
-                <p>시세: <span className="font-semibold text-slate-700">{refreshState.priceSuccess}성공 / {refreshState.priceFailed}실패</span></p>
-                <p>KPI: <span className="font-semibold text-slate-700">{refreshState.kpiSuccess}성공 / {refreshState.kpiFailed}실패</span></p>
-                <p>적용 시세일: <span className="font-semibold text-slate-700">{refreshState.priceAppliedDate ?? "-"}</span></p>
-                <p className="sm:col-span-2">최종 갱신: <span className="font-semibold text-slate-700">{refreshState.lastUpdatedAt ?? "-"}</span></p>
-              </div>
-            </div>
-
-            {/* 포트폴리오 요약 */}
-            <div className="ios-subcard mt-3 p-3">
-              <div className="grid grid-cols-3 gap-3">
-                <div>
-                  <p className="metric-label">종목 수</p>
-                  <p className="metric-value text-slate-800">{resultRows.length}<span className="text-sm font-semibold">개</span></p>
+                <div className="text-center">
+                  <p className="text-[9px] font-bold uppercase tracking-wide text-slate-400">비중합계</p>
+                  <p className="num text-[14px] font-extrabold text-slate-800">{formatPercent(weightSum)}</p>
                 </div>
-                <div>
-                  <p className="metric-label">비중 합계</p>
-                  <p className="metric-value text-slate-800">{formatPercent(weightSum)}</p>
-                </div>
-                <div>
-                  <p className="metric-label">투자금액 합계</p>
-                  <p className="text-sm font-bold text-slate-700 leading-tight mt-1">{formatCurrencyKRW(totalCheckAmount)}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* 월배당금 */}
-            <div className="ios-subcard mt-3 p-3">
-              <p className="text-sm font-bold text-slate-700">월배당금 정보</p>
-              <div className="mt-3 grid grid-cols-2 gap-3">
-                <div>
-                  <p className="metric-label">배당률 (KPI 기간)</p>
-                  <p className="metric-value text-emerald-600">
-                    {selectedWindowKpi != null ? formatPercent(selectedWindowKpi.annualDividendYield) : "-"}
-                  </p>
-                </div>
-                <div>
-                  <p className="metric-label">월배당금 (실데이터)</p>
-                  <p className="metric-value text-brand-600">
+                <div className="text-center">
+                  <p className="text-[9px] font-bold uppercase tracking-wide text-emerald-500">월배당</p>
+                  <p className="num text-[14px] font-extrabold text-brand-600">
                     {monthlyDividendBySelectedWindow != null ? formatCurrencyKRW(monthlyDividendBySelectedWindow) : "-"}
                   </p>
                 </div>
               </div>
-              <p className="mt-2 text-[10px] text-slate-400">선택한 KPI 기간 실데이터 배당률 × 투자금액 ÷ 12</p>
-            </div>
+            </section>
 
-            {/* KPI 비교 */}
-            <div className="ios-subcard mt-3 p-3">
-              <p className="text-sm font-bold text-slate-700">KPI 비교 (평균 vs 최근 {activeKpiLabel})</p>
-              <p className="mt-0.5 text-[10px] text-slate-400">
-                CAGR은 배당 재투자 기준 · 기간:{" "}
-                {selectedKpiPeriod
-                  ? `${formatYmdFromDashDate(selectedKpiPeriod.start)} ~ ${formatYmdFromDashDate(selectedKpiPeriod.end)}`
-                  : "-"}
-              </p>
-              <div className="mt-3 grid grid-cols-2 gap-2">
-                <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">평균 KPI</p>
-                  <div className="space-y-1.5">
-                    <div className="flex justify-between text-xs">
-                      <span className="text-slate-500">CAGR</span>
-                      <span className="font-bold text-emerald-600">{averageKpi ? formatPercent(averageKpi.cagr) : "-"}</span>
-                    </div>
-                    <div className="flex justify-between text-xs">
-                      <span className="text-slate-500">MDD</span>
-                      <span className="font-bold text-rose-500">{averageKpi ? formatPercent(averageKpi.mdd) : "-"}</span>
-                    </div>
-                    <div className="flex justify-between text-xs">
-                      <span className="text-slate-500">Sharpe</span>
-                      <span className="font-bold text-brand-600">{averageKpi ? averageKpi.sharpe.toFixed(2) : "-"}</span>
-                    </div>
-                    <div className="flex justify-between text-xs">
-                      <span className="text-slate-500">배당률</span>
-                      <span className="font-bold text-slate-700">{averageKpi ? formatPercent(averageKpi.annualDividendYield) : "-"}</span>
-                    </div>
+            {/* 진행 상태 (접기) */}
+            <details className="ios-card ios-section overflow-hidden animate-fade-in" open={isRefreshing || undefined}>
+              <summary className="flex items-center justify-between px-3.5 py-2.5">
+                <div className="flex items-center gap-2">
+                  {isRefreshing && <span className="status-dot status-dot-loading" />}
+                  {!isRefreshing && refreshState.stage === "done" && <span className="status-dot status-dot-ok" />}
+                  <span className="text-[12px] font-semibold text-slate-700">
+                    {isRefreshing ? refreshStageText[refreshState.stage] : `갱신 완료 · ${refreshState.lastUpdatedAt ?? "-"}`}
+                  </span>
+                </div>
+                <span className="chevron">▾</span>
+              </summary>
+              <div className="section-body border-t border-slate-100 px-3.5 py-2.5">
+                <p className="text-[11px] text-slate-500">{refreshMessage}</p>
+                <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-brand-100">
+                  <div
+                    className={`h-full rounded-full transition-all duration-500 ${
+                      isRefreshing ? "animate-pulse bg-gradient-to-r from-brand-500 via-brand-400 to-brand-300" : "bg-brand-400"
+                    }`}
+                    style={{ width: `${Math.max(0, Math.min(100, progressPercent))}%` }}
+                  />
+                </div>
+                <div className="mt-1.5 grid grid-cols-2 gap-1 text-[10px] text-slate-400">
+                  <p>단계: <span className="font-semibold text-slate-600">{refreshStageText[refreshState.stage]}</span></p>
+                  <p>진행: <span className="font-semibold text-slate-600 num">{progressPercent}%</span></p>
+                  <p>시세: <span className="font-semibold text-slate-600 num">{refreshState.priceSuccess}/{refreshState.priceFailed}</span></p>
+                  <p>KPI: <span className="font-semibold text-slate-600 num">{refreshState.kpiSuccess}/{refreshState.kpiFailed}</span></p>
+                </div>
+              </div>
+            </details>
+
+            {/* 월배당금 상세 (접기) */}
+            <details className="ios-card ios-section overflow-hidden animate-fade-in">
+              <summary className="flex items-center justify-between px-3.5 py-2.5">
+                <span className="text-[12px] font-semibold text-slate-700">월배당금 상세</span>
+                <div className="flex items-center gap-2">
+                  <span className="num text-[12px] font-bold text-brand-600">
+                    {monthlyDividendBySelectedWindow != null ? formatCurrencyKRW(monthlyDividendBySelectedWindow) : "-"}
+                  </span>
+                  <span className="chevron">▾</span>
+                </div>
+              </summary>
+              <div className="section-body border-t border-slate-100 px-3.5 py-2.5">
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <p className="metric-label">배당률</p>
+                    <p className="num text-[13px] font-bold text-emerald-600">
+                      {selectedWindowKpi != null ? formatPercent(selectedWindowKpi.annualDividendYield) : "-"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="metric-label">연배당금</p>
+                    <p className="num text-[13px] font-bold text-slate-700">
+                      {annualDividendBySelectedWindow != null ? formatCurrencyKRW(annualDividendBySelectedWindow) : "-"}
+                    </p>
                   </div>
                 </div>
-                <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">최근 {activeKpiLabel} KPI</p>
-                  <div className="space-y-1.5">
-                    <div className="flex justify-between text-xs">
-                      <span className="text-slate-500">CAGR</span>
-                      <span className="font-bold text-emerald-600">{selectedWindowKpi ? formatPercent(selectedWindowKpi.cagr) : "-"}</span>
+                <p className="mt-1.5 text-[9px] text-slate-400">KPI 기간 실데이터 배당률 × 투자금액</p>
+              </div>
+            </details>
+
+            {/* KPI 비교 (접기) */}
+            <details className="ios-card ios-section overflow-hidden animate-fade-in">
+              <summary className="flex items-center justify-between px-3.5 py-2.5">
+                <span className="text-[12px] font-semibold text-slate-700">KPI 비교 · {activeKpiLabel}</span>
+                <div className="flex items-center gap-2">
+                  <span className="num text-[11px] font-bold text-emerald-600">
+                    CAGR {selectedWindowKpi ? formatPercent(selectedWindowKpi.cagr) : "-"}
+                  </span>
+                  <span className="chevron">▾</span>
+                </div>
+              </summary>
+              <div className="section-body border-t border-slate-100 px-3.5 py-2.5">
+                <p className="text-[9px] text-slate-400">
+                  배당 재투자 기준 · {selectedKpiPeriod
+                    ? `${formatYmdFromDashDate(selectedKpiPeriod.start)}~${formatYmdFromDashDate(selectedKpiPeriod.end)}`
+                    : "-"}
+                </p>
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  <div className="rounded-lg border border-slate-100 bg-slate-50 p-2.5">
+                    <p className="text-[9px] font-bold uppercase tracking-wide text-slate-400 mb-1.5">평균 KPI</p>
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-[11px]"><span className="text-slate-400">CAGR</span><span className="num font-bold text-emerald-600">{averageKpi ? formatPercent(averageKpi.cagr) : "-"}</span></div>
+                      <div className="flex justify-between text-[11px]"><span className="text-slate-400">MDD</span><span className="num font-bold text-rose-500">{averageKpi ? formatPercent(averageKpi.mdd) : "-"}</span></div>
+                      <div className="flex justify-between text-[11px]"><span className="text-slate-400">Sharpe</span><span className="num font-bold text-brand-600">{averageKpi ? averageKpi.sharpe.toFixed(2) : "-"}</span></div>
+                      <div className="flex justify-between text-[11px]"><span className="text-slate-400">배당률</span><span className="num font-bold text-slate-600">{averageKpi ? formatPercent(averageKpi.annualDividendYield) : "-"}</span></div>
                     </div>
-                    <div className="flex justify-between text-xs">
-                      <span className="text-slate-500">MDD</span>
-                      <span className="font-bold text-rose-500">{selectedWindowKpi ? formatPercent(selectedWindowKpi.mdd) : "-"}</span>
-                    </div>
-                    <div className="flex justify-between text-xs">
-                      <span className="text-slate-500">Sharpe</span>
-                      <span className="font-bold text-brand-600">{selectedWindowKpi ? selectedWindowKpi.sharpe.toFixed(2) : "-"}</span>
-                    </div>
-                    <div className="flex justify-between text-xs">
-                      <span className="text-slate-500">배당률</span>
-                      <span className="font-bold text-slate-700">{selectedWindowKpi ? formatPercent(selectedWindowKpi.annualDividendYield) : "-"}</span>
+                  </div>
+                  <div className="rounded-lg border border-slate-100 bg-slate-50 p-2.5">
+                    <p className="text-[9px] font-bold uppercase tracking-wide text-slate-400 mb-1.5">{activeKpiLabel} KPI</p>
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-[11px]"><span className="text-slate-400">CAGR</span><span className="num font-bold text-emerald-600">{selectedWindowKpi ? formatPercent(selectedWindowKpi.cagr) : "-"}</span></div>
+                      <div className="flex justify-between text-[11px]"><span className="text-slate-400">MDD</span><span className="num font-bold text-rose-500">{selectedWindowKpi ? formatPercent(selectedWindowKpi.mdd) : "-"}</span></div>
+                      <div className="flex justify-between text-[11px]"><span className="text-slate-400">Sharpe</span><span className="num font-bold text-brand-600">{selectedWindowKpi ? selectedWindowKpi.sharpe.toFixed(2) : "-"}</span></div>
+                      <div className="flex justify-between text-[11px]"><span className="text-slate-400">배당률</span><span className="num font-bold text-slate-600">{selectedWindowKpi ? formatPercent(selectedWindowKpi.annualDividendYield) : "-"}</span></div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
+            </details>
 
-            {/* 종목 상세 */}
-            <div className="mt-3 space-y-2">
-              {resultRows.map(({ item, quantity, amount, priceFetchedDate, periodReturnByWindow, appliedDividendYield }) => (
-                <details key={item.id} className="ios-subcard overflow-hidden">
-                  <summary className="flex cursor-pointer list-none items-center justify-between gap-2 p-3">
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold text-slate-800">
-                        <span className="mr-1.5 inline-block rounded bg-brand-50 px-1.5 py-0.5 text-[10px] font-bold text-brand-600">
+            {/* 종목 상세 (접기/펴기) */}
+            <details className="ios-card ios-section overflow-hidden animate-fade-in" open>
+              <summary className="flex items-center justify-between px-3.5 py-2.5">
+                <span className="text-[12px] font-semibold text-slate-700">종목별 상세 ({resultRows.length})</span>
+                <div className="flex items-center gap-2">
+                  <span className="num text-[11px] font-bold text-slate-500">{formatCurrencyKRW(totalCheckAmount)}</span>
+                  <span className="chevron">▾</span>
+                </div>
+              </summary>
+              <div className="section-body border-t border-slate-100">
+                <div className="space-y-px">
+                  {resultRows.map(({ item, quantity, amount, priceFetchedDate, periodReturnByWindow, appliedDividendYield }) => (
+                    <details key={item.id} className="group">
+                      <summary className="flex cursor-pointer list-none items-center gap-2 px-3.5 py-2 hover:bg-slate-50/80">
+                        <span className="inline-block min-w-[32px] rounded bg-brand-50 px-1 py-0.5 text-center text-[9px] font-bold text-brand-600">
                           {formatPercent(item.weight)}
                         </span>
-                        {item.name}
-                      </p>
-                      <p className="mt-0.5 text-[11px] text-slate-400">{item.code} · {item.category}</p>
-                    </div>
-                    <div className="shrink-0 text-right">
-                      <p className="text-lg font-black text-slate-900">{formatNumber(quantity)}<span className="ml-0.5 text-sm font-semibold">주</span></p>
-                      <p className="text-xs text-slate-500">{formatCurrencyKRW(amount)}</p>
-                    </div>
-                  </summary>
-                  <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 border-t border-slate-100 bg-slate-50/80 px-3 py-3 text-xs text-slate-500">
-                    <p>현재가: <span className="font-semibold text-slate-800">{formatCurrencyKRW(item.price)}</span></p>
-                    <p>조회일: <span className="font-semibold text-slate-800">{priceFetchedDate ?? "-"}</span></p>
-                    <p>세부분류: <span className="font-semibold text-slate-800">{item.subCategory}</span></p>
-                    <p>배당률: <span className="font-semibold text-slate-800">{formatPercent(appliedDividendYield)}</span></p>
-                    <p>투자금액: <span className="font-semibold text-slate-800">{formatCurrencyKRW(amount)}</span></p>
-                    <p>1년 수익률: <span className="font-semibold text-slate-800">{periodReturnByWindow["1Y"] != null ? formatPercent(periodReturnByWindow["1Y"]) : "-"}</span></p>
-                    <p>6개월 수익률: <span className="font-semibold text-slate-800">{periodReturnByWindow["6M"] != null ? formatPercent(periodReturnByWindow["6M"]) : "-"}</span></p>
-                    <p>3개월 수익률: <span className="font-semibold text-slate-800">{periodReturnByWindow["3M"] != null ? formatPercent(periodReturnByWindow["3M"]) : "-"}</span></p>
-                    <p>1개월 수익률: <span className="font-semibold text-slate-800">{periodReturnByWindow["1M"] != null ? formatPercent(periodReturnByWindow["1M"]) : "-"}</span></p>
-                  </div>
-                </details>
-              ))}
-            </div>
-
-            {/* 검산 */}
-            <div className="ios-subcard mt-3 p-3">
-              <p className="text-sm font-bold text-slate-700">검산</p>
-              <div className="mt-2 grid grid-cols-1 gap-1.5 text-xs sm:grid-cols-2">
-                <p className="text-slate-500">
-                  입력 투자금액 <span className="font-semibold text-slate-800">{formatCurrencyKRW(investedPrincipal)}</span>
-                </p>
-                <p className="text-slate-500">
-                  종목 합계 <span className="font-semibold text-slate-800">{formatCurrencyKRW(totalCheckAmount)}</span>
-                </p>
-                <p className="sm:col-span-2 text-slate-500">
-                  차이(투자금-종목합계){" "}
-                  <span className={`font-bold ${roundingGap > 0 ? "text-emerald-600" : roundingGap < 0 ? "text-rose-600" : "text-slate-700"}`}>
-                    {formatSignedCurrencyKRW(roundingGap)}
-                  </span>
-                  <span className="ml-1 text-slate-400">({roundingGapLabel})</span>
-                </p>
-                <p className="sm:col-span-2 text-[10px] text-slate-400">주식수 정수 반올림 적용으로 소액 차이가 발생할 수 있습니다.</p>
-              </div>
-            </div>
-
-            {/* 전략 비교 버튼들 */}
-            <div className="mt-3 grid grid-cols-2 gap-2 lg:grid-cols-4">
-              {[
-                { mode: "ABCDE" as StrategyCompareMode, label: `${activeKpiLabel} KPI (ABCDE)` },
-                { mode: "A_MODES" as StrategyCompareMode, label: `A형: 안정·중립·성장` },
-                { mode: "B_MODES" as StrategyCompareMode, label: `B형: 안정·중립·성장` },
-                { mode: "A_GROWTH_SP500" as StrategyCompareMode, label: `A(성장) vs S&P500` },
-              ].map(({ mode, label }) => (
-                <button
-                  key={mode}
-                  type="button"
-                  onClick={() => void handleCompareOneYearKpi(mode)}
-                  disabled={strategyCompareLoading}
-                  className={`rounded-xl border px-3 py-2.5 text-xs font-bold transition disabled:cursor-not-allowed disabled:opacity-60 ${
-                    strategyCompareMode === mode
-                      ? "border-brand-500 bg-brand-500 text-white"
-                      : "border-brand-200 bg-brand-50 text-brand-700 hover:bg-brand-100"
-                  }`}
-                >
-                  {strategyCompareLoading && strategyCompareMode === mode ? "조회 중..." : label}
-                </button>
-              ))}
-            </div>
-
-            {/* 전략 비교 결과 */}
-            {strategyCompareMode && (
-              <div className="ios-subcard mt-3 p-3">
-                <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                  <p className="text-sm font-bold text-slate-700">{strategyCompareTitle}</p>
-                  <p className="text-[11px] text-slate-400">
-                    기준:{" "}
-                    <span className="font-semibold text-slate-600">
-                      {formatCurrencyKRW(strategyComparePrincipal ?? investedPrincipal)}
-                    </span>
-                    {strategyCompareUpdatedAt && (
-                      <span className="ml-1.5">· {strategyCompareUpdatedAt}</span>
-                    )}
-                  </p>
+                        <span className="min-w-0 flex-1 truncate text-[12px] font-medium text-slate-700">{item.name}</span>
+                        <span className="num shrink-0 text-[13px] font-extrabold text-slate-800">{formatNumber(quantity)}<span className="text-[10px] font-semibold text-slate-500">주</span></span>
+                      </summary>
+                      <div className="grid grid-cols-2 gap-x-3 gap-y-1 bg-slate-50/70 px-3.5 py-2 text-[10px] text-slate-400">
+                        <p>현재가 <span className="num font-semibold text-slate-700">{formatCurrencyKRW(item.price)}</span></p>
+                        <p>투자금액 <span className="num font-semibold text-slate-700">{formatCurrencyKRW(amount)}</span></p>
+                        <p>배당률 <span className="num font-semibold text-slate-700">{formatPercent(appliedDividendYield)}</span></p>
+                        <p>조회일 <span className="font-semibold text-slate-700">{priceFetchedDate ?? "-"}</span></p>
+                        <p>1Y <span className="num font-semibold text-slate-700">{periodReturnByWindow["1Y"] != null ? formatPercent(periodReturnByWindow["1Y"]) : "-"}</span></p>
+                        <p>6M <span className="num font-semibold text-slate-700">{periodReturnByWindow["6M"] != null ? formatPercent(periodReturnByWindow["6M"]) : "-"}</span></p>
+                        <p>3M <span className="num font-semibold text-slate-700">{periodReturnByWindow["3M"] != null ? formatPercent(periodReturnByWindow["3M"]) : "-"}</span></p>
+                        <p>1M <span className="num font-semibold text-slate-700">{periodReturnByWindow["1M"] != null ? formatPercent(periodReturnByWindow["1M"]) : "-"}</span></p>
+                      </div>
+                    </details>
+                  ))}
                 </div>
-                {strategyCompareError ? (
-                  <p className="mt-2 text-xs font-semibold text-rose-600">{strategyCompareError}</p>
-                ) : (
-                  <div className="mt-2 max-h-[360px] overflow-auto rounded-xl border border-slate-100">
-                    <table className="ios-table min-w-[680px]">
+
+                {/* 검산 */}
+                <div className="border-t border-slate-100 px-3.5 py-2">
+                  <div className="flex items-center justify-between text-[10px]">
+                    <span className="text-slate-400">검산 차이</span>
+                    <span className={`num font-bold ${roundingGap > 0 ? "text-emerald-600" : roundingGap < 0 ? "text-rose-600" : "text-slate-500"}`}>
+                      {formatSignedCurrencyKRW(roundingGap)} <span className="font-normal text-slate-400">({roundingGapLabel})</span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </details>
+
+            {/* 전략 비교 (접기) */}
+            <details className="ios-card ios-section overflow-hidden animate-fade-in">
+              <summary className="flex items-center justify-between px-3.5 py-2.5">
+                <span className="text-[12px] font-semibold text-slate-700">전략 비교</span>
+                <span className="chevron">▾</span>
+              </summary>
+              <div className="section-body border-t border-slate-100 px-3.5 py-2.5">
+                <div className="grid grid-cols-2 gap-1.5">
+                  {[
+                    { mode: "ABCDE" as StrategyCompareMode, label: `ABCDE` },
+                    { mode: "A_MODES" as StrategyCompareMode, label: `A 성향별` },
+                    { mode: "B_MODES" as StrategyCompareMode, label: `B 성향별` },
+                    { mode: "A_GROWTH_SP500" as StrategyCompareMode, label: `A vs S&P` },
+                  ].map(({ mode, label }) => (
+                    <button
+                      key={mode}
+                      type="button"
+                      onClick={() => void handleCompareOneYearKpi(mode)}
+                      disabled={strategyCompareLoading}
+                      className={`rounded-lg border px-2 py-2 text-[11px] font-bold transition disabled:opacity-50 ${
+                        strategyCompareMode === mode
+                          ? "border-brand-500 bg-brand-500 text-white"
+                          : "border-brand-200 bg-brand-50 text-brand-700"
+                      }`}
+                    >
+                      {strategyCompareLoading && strategyCompareMode === mode ? "..." : label}
+                    </button>
+                  ))}
+                </div>
+
+                {strategyCompareMode && !strategyCompareError && strategyCompareRows.length > 0 && (
+                  <div className="mt-2 max-h-[300px] overflow-auto rounded-lg border border-slate-100">
+                    <table className="ios-table min-w-[560px]">
                       <thead>
                         <tr>
-                          <th className="sticky left-0 top-0 z-30 w-[84px] min-w-[84px] border-r border-slate-200 bg-slate-50 text-left">구분</th>
+                          <th className="sticky left-0 top-0 z-30 w-[64px] min-w-[64px] border-r border-slate-200 bg-slate-50 text-left">구분</th>
                           <th className="sticky top-0 z-20 text-right">CAGR</th>
                           <th className="sticky top-0 z-20 text-right">MDD</th>
                           <th className="sticky top-0 z-20 text-right">Sharpe</th>
                           <th className="sticky top-0 z-20 text-right">배당률</th>
-                          <th className="sticky top-0 z-20 text-right">월배당금</th>
-                          <th className="sticky top-0 z-20 text-left">KPI 기간</th>
+                          <th className="sticky top-0 z-20 text-right">월배당</th>
                         </tr>
                       </thead>
                       <tbody>
                         {strategyCompareRows.map((row) => (
                           <tr key={row.id}>
-                            <td className="sticky left-0 z-10 w-[84px] min-w-[84px] border-r border-slate-100 bg-white px-3 py-2.5 font-semibold text-slate-800">
-                              {row.label}
-                            </td>
-                            <td className="px-3 py-2.5 text-right text-slate-700">
-                              {row.kpi ? formatPercent(row.kpi.cagr) : "-"}
-                            </td>
-                            <td className="px-3 py-2.5 text-right text-slate-700">
-                              {row.kpi ? formatPercent(row.kpi.mdd) : "-"}
-                            </td>
-                            <td className="px-3 py-2.5 text-right text-slate-700">
-                              {row.kpi ? row.kpi.sharpe.toFixed(2) : "-"}
-                            </td>
-                            <td className="px-3 py-2.5 text-right text-slate-700">
-                              {row.kpi ? formatPercent(row.kpi.annualDividendYield) : "-"}
-                            </td>
-                            <td className="px-3 py-2.5 text-right font-semibold text-brand-700">
-                              {row.monthlyDividend != null ? formatCurrencyKRW(row.monthlyDividend) : "-"}
-                            </td>
-                            <td className="px-3 py-2.5 text-slate-600">
-                              {row.periodStart && row.periodEnd
-                                ? `${formatYmdFromDashDate(row.periodStart)}~${formatYmdFromDashDate(row.periodEnd)}`
-                                : "-"}
-                            </td>
+                            <td className="sticky left-0 z-10 w-[64px] min-w-[64px] border-r border-slate-100 bg-white px-2 py-2 text-[11px] font-semibold text-slate-700">{row.label}</td>
+                            <td className="num px-2 py-2 text-right text-[11px] text-slate-600">{row.kpi ? formatPercent(row.kpi.cagr) : "-"}</td>
+                            <td className="num px-2 py-2 text-right text-[11px] text-slate-600">{row.kpi ? formatPercent(row.kpi.mdd) : "-"}</td>
+                            <td className="num px-2 py-2 text-right text-[11px] text-slate-600">{row.kpi ? row.kpi.sharpe.toFixed(2) : "-"}</td>
+                            <td className="num px-2 py-2 text-right text-[11px] text-slate-600">{row.kpi ? formatPercent(row.kpi.annualDividendYield) : "-"}</td>
+                            <td className="num px-2 py-2 text-right text-[11px] font-semibold text-brand-700">{row.monthlyDividend != null ? formatCurrencyKRW(row.monthlyDividend) : "-"}</td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
                   </div>
                 )}
+                {strategyCompareError && <p className="mt-2 text-[11px] font-semibold text-rose-600">{strategyCompareError}</p>}
               </div>
-            )}
-          </section>
+            </details>
+          </>
         )}
 
-        {/* ── 복리 계산기 ── */}
-        <section className="ios-card p-4 sm:p-5">
-          <h2 className="text-sm font-bold text-slate-700 sm:text-base">복리 계산기</h2>
-          <p className="mt-1 text-xs text-slate-400">
-            원금·추가원금·목표수익률·기간을 입력하면 복리 기준 총 자산과 수익금을 계산합니다.
-          </p>
-
-          <div className="mt-3 space-y-4">
-            {/* 최초 투자원금 */}
-            <div>
-              <p className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">최초 투자원금</p>
-              <input
-                className="ios-input text-right text-base font-bold"
-                inputMode="decimal"
-                value={
-                  compoundInitialFocused
-                    ? compoundInitialPrincipal === 0
-                      ? ""
-                      : String(compoundInitialPrincipal)
-                    : compoundInitialPrincipal.toLocaleString("ko-KR")
-                }
-                onFocus={(event) => {
-                  setCompoundInitialFocused(true);
-                  event.currentTarget.select();
-                }}
-                onBlur={() => setCompoundInitialFocused(false)}
-                onChange={(event) =>
-                  setCompoundInitialPrincipal(
-                    sanitizeNonNegativeNumber(
-                      Number(event.target.value.replace(/[^0-9.]/g, "")) || 0,
-                      0
-                    )
-                  )
-                }
-              />
-              <div className="mt-2 grid grid-cols-3 gap-2">
-                {COMPOUND_INITIAL_QUICK_ADD.map((quick) => (
-                  <button
-                    key={quick.label}
-                    type="button"
-                    onClick={() =>
-                      setCompoundInitialPrincipal((prev) =>
-                        sanitizeNonNegativeNumber(prev + quick.amount, 0)
-                      )
-                    }
-                    className="btn-ghost py-2 text-xs"
-                  >
-                    +{quick.label}
-                  </button>
-                ))}
-              </div>
+        {/* ── 복리 계산기 (접기) ── */}
+        <details className="ios-card ios-section overflow-hidden">
+          <summary className="flex items-center justify-between px-3.5 py-2.5">
+            <span className="text-[12px] font-semibold text-slate-700">복리 계산기</span>
+            <div className="flex items-center gap-2">
+              {compoundFinal.totalAsset > 0 && (
+                <span className="num text-[11px] font-bold text-brand-600">{formatCompactKrw(compoundFinal.totalAsset)}</span>
+              )}
+              <span className="chevron">▾</span>
             </div>
-
-            {/* 매년 추가원금 */}
-            <div>
-              <p className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">매년 추가원금</p>
-              <input
-                className="ios-input text-right text-base font-bold"
-                inputMode="decimal"
-                value={
-                  compoundAnnualFocused
-                    ? compoundAnnualContribution === 0
-                      ? ""
-                      : String(compoundAnnualContribution)
-                    : compoundAnnualContribution.toLocaleString("ko-KR")
-                }
-                onFocus={(event) => {
-                  setCompoundAnnualFocused(true);
-                  event.currentTarget.select();
-                }}
-                onBlur={() => setCompoundAnnualFocused(false)}
-                onChange={(event) =>
-                  setCompoundAnnualContribution(
-                    sanitizeNonNegativeNumber(
-                      Number(event.target.value.replace(/[^0-9.]/g, "")) || 0,
-                      0
-                    )
-                  )
-                }
-              />
-              <div className="mt-2 grid grid-cols-2 gap-2">
-                {COMPOUND_ANNUAL_QUICK_ADD.map((quick) => (
-                  <button
-                    key={quick.label}
-                    type="button"
-                    onClick={() =>
-                      setCompoundAnnualContribution((prev) =>
-                        sanitizeNonNegativeNumber(prev + quick.amount, 0)
-                      )
-                    }
-                    className="btn-ghost py-2 text-xs"
-                  >
-                    +{quick.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* 수익률 + 기간 */}
-            <div className="grid grid-cols-2 gap-3">
+          </summary>
+          <div className="section-body border-t border-slate-100 px-3.5 py-3">
+            <div className="space-y-3">
+              {/* 최초 투자원금 */}
               <div>
-                <p className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">목표 수익률 %</p>
+                <p className="mb-1 text-[9px] font-bold uppercase tracking-widest text-slate-400">최초 투자원금</p>
                 <input
-                  className="ios-input text-right text-base font-bold"
+                  className="ios-input text-right text-sm font-bold"
                   inputMode="decimal"
-                  value={compoundTargetReturn}
+                  value={
+                    compoundInitialFocused
+                      ? compoundInitialPrincipal === 0
+                        ? ""
+                        : String(compoundInitialPrincipal)
+                      : compoundInitialPrincipal.toLocaleString("ko-KR")
+                  }
+                  onFocus={(event) => {
+                    setCompoundInitialFocused(true);
+                    event.currentTarget.select();
+                  }}
+                  onBlur={() => setCompoundInitialFocused(false)}
                   onChange={(event) =>
-                    setCompoundTargetReturn(
+                    setCompoundInitialPrincipal(
                       sanitizeNonNegativeNumber(
                         Number(event.target.value.replace(/[^0-9.]/g, "")) || 0,
                         0
@@ -1657,98 +1492,150 @@ function App() {
                     )
                   }
                 />
+                <div className="mt-1.5 grid grid-cols-3 gap-1.5">
+                  {COMPOUND_INITIAL_QUICK_ADD.map((quick) => (
+                    <button
+                      key={quick.label}
+                      type="button"
+                      onClick={() =>
+                        setCompoundInitialPrincipal((prev) =>
+                          sanitizeNonNegativeNumber(prev + quick.amount, 0)
+                        )
+                      }
+                      className="btn-ghost"
+                    >
+                      +{quick.label}
+                    </button>
+                  ))}
+                </div>
               </div>
+
+              {/* 매년 추가원금 */}
               <div>
-                <p className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">투자 기간 (년)</p>
+                <p className="mb-1 text-[9px] font-bold uppercase tracking-widest text-slate-400">매년 추가원금</p>
                 <input
-                  className="ios-input text-right text-base font-bold"
-                  inputMode="numeric"
-                  value={compoundYears}
+                  className="ios-input text-right text-sm font-bold"
+                  inputMode="decimal"
+                  value={
+                    compoundAnnualFocused
+                      ? compoundAnnualContribution === 0
+                        ? ""
+                        : String(compoundAnnualContribution)
+                      : compoundAnnualContribution.toLocaleString("ko-KR")
+                  }
+                  onFocus={(event) => {
+                    setCompoundAnnualFocused(true);
+                    event.currentTarget.select();
+                  }}
+                  onBlur={() => setCompoundAnnualFocused(false)}
                   onChange={(event) =>
-                    setCompoundYears(
-                      Math.floor(
+                    setCompoundAnnualContribution(
+                      sanitizeNonNegativeNumber(
+                        Number(event.target.value.replace(/[^0-9.]/g, "")) || 0,
+                        0
+                      )
+                    )
+                  }
+                />
+                <div className="mt-1.5 grid grid-cols-2 gap-1.5">
+                  {COMPOUND_ANNUAL_QUICK_ADD.map((quick) => (
+                    <button
+                      key={quick.label}
+                      type="button"
+                      onClick={() =>
+                        setCompoundAnnualContribution((prev) =>
+                          sanitizeNonNegativeNumber(prev + quick.amount, 0)
+                        )
+                      }
+                      className="btn-ghost"
+                    >
+                      +{quick.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 수익률 + 기간 */}
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <p className="mb-1 text-[9px] font-bold uppercase tracking-widest text-slate-400">목표 수익률 %</p>
+                  <input
+                    className="ios-input text-right text-sm font-bold"
+                    inputMode="decimal"
+                    value={compoundTargetReturn}
+                    onChange={(event) =>
+                      setCompoundTargetReturn(
                         sanitizeNonNegativeNumber(
                           Number(event.target.value.replace(/[^0-9.]/g, "")) || 0,
                           0
                         )
                       )
-                    )
-                  }
-                />
+                    }
+                  />
+                </div>
+                <div>
+                  <p className="mb-1 text-[9px] font-bold uppercase tracking-widest text-slate-400">기간 (년)</p>
+                  <input
+                    className="ios-input text-right text-sm font-bold"
+                    inputMode="numeric"
+                    value={compoundYears}
+                    onChange={(event) =>
+                      setCompoundYears(
+                        Math.floor(
+                          sanitizeNonNegativeNumber(
+                            Number(event.target.value.replace(/[^0-9.]/g, "")) || 0,
+                            0
+                          )
+                        )
+                      )
+                    }
+                  />
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* 총 자산 결과 */}
-          <div className="ios-subcard mt-4 p-3">
-            <p className="text-sm font-bold text-slate-700">총 자산 결과</p>
-            <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {/* 결과 */}
+            <div className="mt-3 grid grid-cols-2 gap-2">
               <div className="metric-card">
                 <p className="metric-label">누적 원금</p>
-                <p className="metric-value text-base text-slate-700">{formatCurrencyKRW(compoundFinal.principalSum)}</p>
+                <p className="metric-value text-slate-700">{formatCompactKrw(compoundFinal.principalSum)}</p>
               </div>
               <div className="metric-card">
                 <p className="metric-label">총 자산</p>
-                <p className="metric-value text-base text-brand-600">{formatCurrencyKRW(compoundFinal.totalAsset)}</p>
+                <p className="metric-value text-brand-600">{formatCompactKrw(compoundFinal.totalAsset)}</p>
               </div>
               <div className="metric-card">
                 <p className="metric-label">수익금</p>
-                <p className={`metric-value text-base ${compoundFinal.profit >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
-                  {formatSignedCurrencyKRW(compoundFinal.profit)}
+                <p className={`metric-value ${compoundFinal.profit >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+                  {formatCompactKrw(compoundFinal.profit)}
                 </p>
               </div>
               <div className="metric-card">
-                <p className="metric-label">누적 수익률</p>
-                <p className="metric-value text-base text-slate-700">{formatPercent(compoundTotalReturnPercent)}</p>
+                <p className="metric-label">수익률</p>
+                <p className="num metric-value text-slate-700">{formatPercent(compoundTotalReturnPercent)}</p>
               </div>
             </div>
-          </div>
 
-          {/* 수익률 그래프 */}
-          <div className="ios-subcard mt-3 p-3">
-            <p className="text-sm font-bold text-slate-700">수익률 그래프</p>
-            <div className="mt-2 overflow-hidden rounded-xl border border-brand-100 bg-gradient-to-br from-brand-50 to-white p-2">
-              <svg viewBox={`0 0 ${compoundChart.width} ${compoundChart.height}`} className="h-40 w-full">
+            {/* 그래프 */}
+            <div className="mt-2 overflow-hidden rounded-lg border border-brand-100 bg-gradient-to-br from-brand-50 to-white p-2">
+              <svg viewBox={`0 0 ${compoundChart.width} ${compoundChart.height}`} className="h-32 w-full">
                 <polygon points={compoundChart.area} fill="rgba(99,102,241,0.06)" />
-                <polyline
-                  points={compoundChart.principalLine}
-                  fill="none"
-                  stroke="rgba(148,163,184,0.7)"
-                  strokeWidth="1.5"
-                  strokeDasharray="4 4"
-                />
-                <polyline
-                  points={compoundChart.assetLine}
-                  fill="none"
-                  stroke="#6366F1"
-                  strokeWidth="2.5"
-                />
+                <polyline points={compoundChart.principalLine} fill="none" stroke="rgba(148,163,184,0.6)" strokeWidth="1.2" strokeDasharray="3 3" />
+                <polyline points={compoundChart.assetLine} fill="none" stroke="#6366F1" strokeWidth="2" />
               </svg>
-              <div className="mt-1 flex items-center justify-between text-[10px] text-slate-400">
-                {compoundChart.labels.map((label) => (
-                  <span key={label.key}>{label.label}</span>
-                ))}
+              <div className="flex items-center justify-between text-[9px] text-slate-400">
+                {compoundChart.labels.map((label) => <span key={label.key}>{label.label}</span>)}
               </div>
-              <div className="mt-0.5 flex items-center justify-between text-[10px] text-slate-400">
-                <span>상단 {compoundChart.yTop}</span>
-                <span>하단 {compoundChart.yBottom}</span>
-              </div>
-              <div className="mt-1.5 flex items-center gap-4 text-[10px] text-slate-500">
-                <span className="inline-flex items-center gap-1.5">
-                  <span className="inline-block h-0.5 w-4 rounded bg-brand-500" />
-                  총 자산
-                </span>
-                <span className="inline-flex items-center gap-1.5">
-                  <span className="inline-block h-0.5 w-4 rounded border-t border-dashed border-slate-400" />
-                  누적 원금
-                </span>
+              <div className="mt-1 flex items-center gap-3 text-[9px] text-slate-400">
+                <span className="inline-flex items-center gap-1"><span className="inline-block h-px w-3 rounded bg-brand-500" />총 자산</span>
+                <span className="inline-flex items-center gap-1"><span className="inline-block h-px w-3 rounded border-t border-dashed border-slate-400" />원금</span>
               </div>
             </div>
-            <p className="mt-2 text-xs text-slate-500">{compoundEvaluationText}</p>
+            <p className="mt-1.5 text-[10px] leading-relaxed text-slate-400">{compoundEvaluationText}</p>
           </div>
-        </section>
+        </details>
 
-        <p className="pb-2 text-center text-[10px] tracking-[0.08em] text-slate-400">
+        <p className="pb-1 pt-1 text-center text-[9px] tracking-wider text-slate-400">
           {PRODUCED_BY_LABEL}
         </p>
       </div>
